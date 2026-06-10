@@ -1045,6 +1045,15 @@ function openLesson(lessonId){
 async function openExam(examId){
   currentExamId=examId;examAnswers={};
   const exam=allExams.find(e=>e.id===examId);if(!exam)return;
+  if(currentUser.id!=='admin-local'){
+    try{
+      const{data:prev}=await sb.from('exam_results').select('score,passed').eq('exam_id',examId).eq('student_id',currentUser.id).maybeSingle();
+      if(prev){
+        toast(`Ya realizaste este examen. Tu nota fue ${prev.score}%`,'error');
+        return;
+      }
+    }catch(e){}
+  }
   let questions=allQuestions.filter(q=>q.exam_id===examId);
   if(!questions.length){
     const{data}=await sb.from('exam_questions').select('*').eq('exam_id',examId).order('order_index');
@@ -1081,6 +1090,7 @@ async function submitExam(){
   const exam=allExams.find(e=>e.id===currentExamId);
   const questions=allQuestions.filter(q=>q.exam_id===currentExamId);
   if(Object.keys(examAnswers).length<questions.length){toast('Responde todas las preguntas antes de enviar','error');return;}
+  if(!confirm('¿Estás seguro de que deseas enviar el examen? No podrás volver a realizarlo.'))return;
   let correct=0;
   questions.forEach(q=>{
     const optMap={a:q.option_a,b:q.option_b,c:q.option_c,d:q.option_d};
@@ -1097,20 +1107,24 @@ async function submitExam(){
   const passed=score>=(exam.pass_score||70);
   document.getElementById('exam-submit-area').innerHTML='';
   if(currentUser.id!=='admin-local'){
-    await sb.from('exam_results').insert({exam_id:currentExamId,student_id:currentUser.id,score,passed}).catch(()=>{});
+    try{await sb.from('exam_results').insert({exam_id:currentExamId,student_id:currentUser.id,score,passed});}catch(e){}
   }
   document.getElementById('exam-results-container').innerHTML=`
     <div class="exam-results-card">
+      <div style="font-size:64px;text-align:center;margin-bottom:8px">${passed?'🎉':'😔'}</div>
       <div class="exam-score-big" style="color:${passed?'var(--green)':'var(--red)'}">${score}%</div>
-      <div class="exam-result-msg">${passed?'Felicitaciones, aprobaste el examen!':'No alcanzaste la nota mínima. Puedes intentarlo de nuevo.'}</div>
-      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
-        <div style="background:var(--bg2);border-radius:var(--r-sm);padding:12px 20px;text-align:center"><div style="font-size:22px;font-weight:600;color:var(--green)">${correct}</div><div style="font-size:11px;color:var(--muted)">Correctas</div></div>
-        <div style="background:var(--bg2);border-radius:var(--r-sm);padding:12px 20px;text-align:center"><div style="font-size:22px;font-weight:600;color:var(--red)">${questions.length-correct}</div><div style="font-size:11px;color:var(--muted)">Incorrectas</div></div>
-        <div style="background:var(--bg2);border-radius:var(--r-sm);padding:12px 20px;text-align:center"><div style="font-size:22px;font-weight:600;color:var(--accent)">${questions.length}</div><div style="font-size:11px;color:var(--muted)">Total</div></div>
+      <div class="exam-result-msg" style="font-size:18px;font-weight:600;margin-bottom:6px">${passed?'¡Felicitaciones, aprobaste!':'No alcanzaste la nota mínima.'}</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:20px">Nota mínima requerida: ${exam.pass_score||70}%</div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:20px">
+        <div style="background:var(--bg2);border-radius:var(--r-sm);padding:12px 24px;text-align:center"><div style="font-size:24px;font-weight:700;color:var(--green)">${correct}</div><div style="font-size:11px;color:var(--muted)">Correctas</div></div>
+        <div style="background:var(--bg2);border-radius:var(--r-sm);padding:12px 24px;text-align:center"><div style="font-size:24px;font-weight:700;color:var(--red)">${questions.length-correct}</div><div style="font-size:11px;color:var(--muted)">Incorrectas</div></div>
+        <div style="background:var(--bg2);border-radius:var(--r-sm);padding:12px 24px;text-align:center"><div style="font-size:24px;font-weight:700;color:var(--accent)">${questions.length}</div><div style="font-size:11px;color:var(--muted)">Total</div></div>
       </div>
-      <div style="margin-top:20px;display:flex;gap:10px;justify-content:center">
-        <button class="btn btn-ghost" onclick="showView('module-detail')">Volver al módulo</button>
-        ${!passed?`<button class="btn btn-primary" onclick="openExam(${currentExamId})">Reintentar</button>`:''}
+      <div style="background:var(--bg2);border-radius:var(--r-sm);padding:10px 16px;font-size:12px;color:var(--muted);text-align:center;margin-bottom:20px">
+        Este examen ha sido enviado y no puede realizarse nuevamente.
+      </div>
+      <div style="display:flex;gap:10px;justify-content:center">
+        <button class="btn btn-primary" onclick="showView('module-detail')">Volver al módulo</button>
       </div>
     </div>`;
   window.scrollTo(0,0);
