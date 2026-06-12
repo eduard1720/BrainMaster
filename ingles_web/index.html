@@ -9,14 +9,14 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#060d16;--bg2:#0a1520;--surface:#0d1e30;
-  --border:rgba(0,200,255,0.12);--border2:rgba(0,200,255,0.22);
-  --ink:#ddeeff;--ink2:#90b8d8;--muted:#4a7090;
-  --accent:#00c8ff;--accent-soft:rgba(0,200,255,0.1);
-  --blue:#0066ff;--blue-soft:rgba(0,102,255,0.12);
-  --red:#ff4560;--red-soft:rgba(255,69,96,0.12);
+  --bg:#0f1729;--bg2:#162040;--surface:#1a2b55;
+  --border:rgba(245,166,35,0.15);--border2:rgba(245,166,35,0.25);
+  --ink:#e8eeff;--ink2:#a0b4d8;--muted:#5a7299;
+  --accent:#f5a623;--accent-soft:rgba(245,166,35,0.12);
+  --blue:#1a2b6b;--blue-soft:rgba(26,43,107,0.4);
+  --red:#cc2020;--red-soft:rgba(204,32,32,0.12);
   --green:#00e5a0;--green-soft:rgba(0,229,160,0.1);
-  --warn:#ff9500;--warn-soft:rgba(255,149,0,0.12);
+  --warn:#f5a623;--warn-soft:rgba(245,166,35,0.12);
   --r:12px;--r-sm:8px;
 }
 html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink)}
@@ -87,7 +87,7 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
 #app{display:none;height:100vh;flex-direction:column}
 .topnav{height:54px;background:#07111c;border-bottom:0.5px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:0;flex-shrink:0;z-index:100}
 .topnav-logo{display:flex;align-items:center;gap:8px;margin-right:28px}
-.topnav-logo-mark{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,#00c8ff,#0066ff);display:flex;align-items:center;justify-content:center}
+.topnav-logo-mark{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,#f5a623,#cc2020);display:flex;align-items:center;justify-content:center}
 .topnav-logo-mark svg{width:13px;height:13px;fill:white}
 .topnav-logo-name{font-family:'Fraunces',serif;font-size:15px;color:var(--ink);letter-spacing:-.2px}
 .nav-tabs{display:flex;gap:2px;flex:1}
@@ -359,9 +359,9 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
   <div class="login-glow login-glow-1"></div>
   <div class="login-glow login-glow-2"></div>
   <div class="login-card">
-    <div class="login-logo">
-      <div class="login-logo-mark"><svg viewBox="0 0 20 20"><path d="M10 2a8 8 0 100 16A8 8 0 0010 2zm.75 11.5h-1.5v-5h1.5v5zm0-6.5h-1.5V5.5h1.5V7z"/></svg></div>
-      <div class="login-logo-name">Brain Master English<span>Plataforma de aprendizaje</span></div>
+      <div class="login-logo">
+      <img src="https://i.imgur.com/knxaEWI.png" style="width:180px;margin-bottom:8px">
+      <div class="login-logo-name" style="display:none">Brain Master English<span>Plataforma de aprendizaje</span></div>
     </div>
     <div class="login-title">Iniciar sesión</div>
     <div class="login-sub">Ingresa tus credenciales para continuar</div>
@@ -390,8 +390,7 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
 <div id="app">
   <nav class="topnav">
     <div class="topnav-logo">
-      <div class="topnav-logo-mark"><svg viewBox="0 0 20 20"><path d="M10 2a8 8 0 100 16A8 8 0 0010 2zm.75 11.5h-1.5v-5h1.5v5zm0-6.5h-1.5V5.5h1.5V7z"/></svg></div>
-      <span class="topnav-logo-name">Brain Master English</span>
+      <img src="https://i.imgur.com/knxaEWI.png" style="height:28px;width:auto">
     </div>
     <div class="nav-tabs" id="nav-tabs">
       <div class="nav-tab active" data-view="classes" onclick="showView('classes')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 10l4.553-2.276A1 1 0 0121 8.723v6.554a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg>Clases</div>
@@ -723,6 +722,7 @@ const ADMIN_PASS='ruben123';
 let currentUser=null,isAdmin=false;
 let allModules=[],allLessons=[],allExams=[],allQuestions=[];
 let userAccess=[],allStudentsCache=[];
+let completedLessons=new Set(); // IDs de lecciones vistas por el estudiante
 let currentModuleId=null,currentExamId=null,examAnswers={};
 let chatHistory=[],vocabItems=[];
 let sessionMsgs=0,sessionWords=0,sessionStart=null,sessionTimer=null;
@@ -806,7 +806,7 @@ async function doLogout(){
   clearInterval(sessionTimer);
   if(synth)synth.cancel();
   if(recognition&&isRecording)recognition.stop();
-  currentUser=null;isAdmin=false;allModules=[];allLessons=[];allExams=[];allQuestions=[];userAccess=[];allStudentsCache=[];
+  currentUser=null;isAdmin=false;allModules=[];allLessons=[];allExams=[];allQuestions=[];userAccess=[];allStudentsCache=[];completedLessons=new Set();
   chatHistory=[];vocabItems=[];sessionMsgs=0;sessionWords=0;sessionStart=null;sessionTimer=null;
   isRecording=false;recognition=null;activeSpeakBtn=null;currentModuleId=null;examAnswers={};
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
@@ -861,6 +861,11 @@ async function loadModules(){
       const pub=allModules.filter(m=>m.is_published);
       userAccess=pub.slice(0,4).map(m=>({module_id:m.id,unlocked:true,progress:0}));
     }else{userAccess=acc;}
+    // Cargar lecciones completadas
+    try{
+      const{data:lp}=await sb.from('lesson_progress').select('lesson_id').eq('student_id',currentUser.id);
+      completedLessons=new Set((lp||[]).map(r=>r.lesson_id));
+    }catch(e){completedLessons=new Set();}
   }
   renderModulesGrid();updateProgressStats();
 }
@@ -904,6 +909,45 @@ const iconSvgs=[
 // ═══════════════════════
 // MODULES GRID
 // ═══════════════════════
+// ═══════════════════════
+// DURATION AUTO-CALC
+// ═══════════════════════
+function parseDurationToSeconds(str){
+  if(!str||typeof str!=='string')return 0;
+  str=str.trim();
+  // mm:ss  or  hh:mm:ss
+  if(/^\d+:\d{2}(:\d{2})?$/.test(str)){
+    const parts=str.split(':').map(Number);
+    if(parts.length===3)return parts[0]*3600+parts[1]*60+parts[2];
+    return parts[0]*60+parts[1];
+  }
+  // "45 min", "1 hora", "1h 30m", "90m", etc.
+  let total=0;
+  const h=str.match(/(\d+\.?\d*)\s*h/i);
+  const m=str.match(/(\d+\.?\d*)\s*m/i);
+  const s=str.match(/(\d+\.?\d*)\s*s/i);
+  if(h)total+=parseFloat(h[1])*3600;
+  if(m)total+=parseFloat(m[1])*60;
+  if(s)total+=parseFloat(s[1]);
+  // plain number → assume minutes
+  if(!h&&!m&&!s){const n=parseFloat(str);if(!isNaN(n))total=n*60;}
+  return Math.round(total);
+}
+
+function formatSeconds(sec){
+  if(!sec||sec<=0)return null;
+  const h=Math.floor(sec/3600);
+  const m=Math.floor((sec%3600)/60);
+  if(h>0)return m>0?`${h}h ${m}m`:`${h}h`;
+  return `${m}m`;
+}
+
+function calcModuleDuration(moduleId){
+  const lessons=allLessons.filter(l=>l.module_id===moduleId);
+  const total=lessons.reduce((acc,l)=>acc+parseDurationToSeconds(l.duration),0);
+  return formatSeconds(total);
+}
+
 function renderModulesGrid(){
   const grid=document.getElementById('modules-grid');
   const published=allModules.filter(m=>m.is_published);
@@ -923,7 +967,6 @@ function renderModulesGrid(){
       <div class="module-thumb">
         ${thumbHtml}
         ${locked?`<div class="module-lock-overlay"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div>`:`<div class="play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>`}
-        <div class="module-level-badge"><span class="badge ${lv.cls}">${lv.label}</span></div>
         ${lessonCount>0?`<div class="module-lesson-count">${lessonCount} lección${lessonCount!==1?'es':''}</div>`:''}
       </div>
       <div class="module-body">
@@ -931,7 +974,7 @@ function renderModulesGrid(){
         <div class="module-title">${m.title}</div>
         ${m.description?`<div class="module-desc">${m.description}</div>`:''}
         <div class="module-footer">
-          <div class="module-dur"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>${m.duration||'—'}</div>
+          <div class="module-dur"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>${calcModuleDuration(m.id)||m.duration||'—'}</div>
           <div class="prog-wrap"><div class="prog-fill" style="width:${prog}%"></div></div>
           <div class="prog-pct">${prog}%</div>
         </div>
@@ -963,7 +1006,7 @@ async function openModuleDetail(moduleId){
   document.getElementById('detail-title').textContent=m.title;
   document.getElementById('detail-desc').textContent=m.description||'';
   document.getElementById('detail-meta').innerHTML=`
-    <div class="meta-item"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>${m.duration||'—'}</div>
+    <div class="meta-item"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>${calcModuleDuration(m.id)||m.duration||'—'}</div>
     <div class="meta-item"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M15 10l4.553-2.276A1 1 0 0121 8.723v6.554a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg>${lessons.length} lección${lessons.length!==1?'es':''}</div>
     <span class="badge ${m.level==='beginner'?'badge-green':m.level==='intermediate'?'badge-accent':'badge-blue'}">${lv[m.level]||'Básico'}</span>`;
   document.getElementById('lessons-count-label').textContent=`Lecciones (${lessons.length})`;
@@ -1004,6 +1047,63 @@ async function openModuleDetail(moduleId){
   showView('module-detail');
 }
 
+// ═══════════════════════
+// LESSON PROGRESS
+// ═══════════════════════
+async function markLessonComplete(lessonId,moduleId){
+  if(isAdmin||!currentUser||completedLessons.has(lessonId))return;
+  completedLessons.add(lessonId);
+  // Guardar en BD
+  try{
+    await sb.from('lesson_progress').upsert(
+      {student_id:currentUser.id,lesson_id:lessonId,module_id:moduleId,completed_at:new Date().toISOString()},
+      {onConflict:'student_id,lesson_id'}
+    );
+  }catch(e){}
+  // Calcular nuevo progreso del módulo
+  await recalcModuleProgress(moduleId);
+  // Actualizar UI de la card sin re-renderizar todo
+  refreshModuleCardProgress(moduleId);
+}
+
+async function recalcModuleProgress(moduleId){
+  const moduleLessons=allLessons.filter(l=>l.module_id===moduleId);
+  if(!moduleLessons.length)return;
+  const done=moduleLessons.filter(l=>completedLessons.has(l.id)).length;
+  const pct=Math.round((done/moduleLessons.length)*100);
+  // Actualizar en memoria
+  const acc=userAccess.find(a=>a.module_id===moduleId);
+  if(acc){acc.progress=pct;}
+  // Persistir en module_access
+  try{
+    const{data:ex}=await sb.from('module_access').select('id').eq('student_id',currentUser.id).eq('module_id',moduleId).limit(1);
+    if(ex&&ex.length){
+      await sb.from('module_access').update({progress:pct}).eq('id',ex[0].id);
+    }else{
+      await sb.from('module_access').insert({student_id:currentUser.id,module_id:moduleId,unlocked:true,progress:pct});
+    }
+  }catch(e){}
+}
+
+function refreshModuleCardProgress(moduleId){
+  // Actualiza barra y % en la card correspondiente sin re-renderizar
+  const acc=userAccess.find(a=>a.module_id===moduleId);
+  const pct=acc?.progress||0;
+  // Encontrar la card por su onclick
+  const grid=document.getElementById('modules-grid');
+  if(!grid)return;
+  const cards=[...grid.querySelectorAll('.module-card')];
+  cards.forEach(card=>{
+    const onclick=card.getAttribute('onclick')||'';
+    if(onclick.includes(`openModuleDetail(${moduleId})`)){
+      const fill=card.querySelector('.prog-fill');
+      const pctEl=card.querySelector('.prog-pct');
+      if(fill)fill.style.width=pct+'%';
+      if(pctEl)pctEl.textContent=pct+'%';
+    }
+  });
+}
+
 function openLesson(lessonId){
   const l=allLessons.find(x=>x.id===lessonId);if(!l)return;
   const m=allModules.find(x=>x.id===l.module_id);
@@ -1024,12 +1124,21 @@ function openLesson(lessonId){
   }else{noVid.style.display='flex';}
   const moduleLessons=allLessons.filter(ls=>ls.module_id===l.module_id);
   document.getElementById('player-sidebar-hdr').textContent=m?m.title:'Lecciones';
-  document.getElementById('player-sidebar-list').innerHTML=moduleLessons.map((ls,i)=>`
-    <div class="sidebar-item${ls.id===lessonId?' active':''}" onclick="openLesson(${ls.id})">
-      <div class="sidebar-item-num">Lección ${ls.order_index||i+1}</div>
-      <div class="sidebar-item-title">${ls.title}</div>
-    </div>`).join('');
+  document.getElementById('player-sidebar-list').innerHTML=moduleLessons.map((ls,i)=>{
+    const done=completedLessons.has(ls.id);
+    return `<div class="sidebar-item${ls.id===lessonId?' active':''}" onclick="openLesson(${ls.id})">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
+        <div>
+          <div class="sidebar-item-num">Lección ${ls.order_index||i+1}</div>
+          <div class="sidebar-item-title">${ls.title}</div>
+        </div>
+        ${done?`<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="var(--green)" stroke-width="2.5" style="flex-shrink:0"><path d="M20 6L9 17l-5-5"/></svg>`:''}
+      </div>
+    </div>`;
+  }).join('');
   showView('player');
+  // Marcar la lección como completada
+  markLessonComplete(lessonId, l.module_id);
 }
 </script>
 
@@ -1305,7 +1414,7 @@ async function saveExam(){
     await sb.from('exam_questions').insert(qPayload);
   }
   toast(editId?'Examen actualizado':'Examen creado','success');
-  closeExamModal();await loadAdminData();
+  closeExamModal();await loadAdminData();renderAdminExams();
 }
 
 async function deleteExam(id){
@@ -1341,9 +1450,10 @@ function renderAdminExams(){
 // STUDENT ACCESS
 // ═══════════════════════
 async function toggleAccess(studentId,moduleId,currentState){
-  const{data:ex}=await sb.from('module_access').select('id').eq('student_id',studentId).eq('module_id',moduleId).single().catch(()=>({data:null}));
+  let ex=null;
+  try{const res=await sb.from('module_access').select('id').eq('student_id',studentId).eq('module_id',moduleId).limit(1);ex=res.data?.length?res.data[0]:null;}catch(e){}
   if(ex)await sb.from('module_access').update({unlocked:!currentState}).eq('id',ex.id);
-  else await sb.from('module_access').insert({student_id:studentId,module_id:moduleId,unlocked:true});
+  else await sb.from('module_access').insert({student_id:studentId,module_id:moduleId,unlocked:true,progress:0});
   toast(!currentState?'Módulo desbloqueado':'Módulo bloqueado','success');
   await loadAdminData();
 }
@@ -1441,9 +1551,10 @@ try{const res=await sb.from('module_access').select('*').eq('student_id',student
 }
 
 async function toggleAccessFromProfile(studentId,moduleId,currentState,btn){
-  const{data:ex}=await sb.from('module_access').select('id').eq('student_id',studentId).eq('module_id',moduleId).single().catch(()=>({data:null}));
+  let ex=null;
+  try{const res=await sb.from('module_access').select('id').eq('student_id',studentId).eq('module_id',moduleId).limit(1);ex=res.data?.length?res.data[0]:null;}catch(e){}
   if(ex)await sb.from('module_access').update({unlocked:!currentState}).eq('id',ex.id);
-  else await sb.from('module_access').insert({student_id:studentId,module_id:moduleId,unlocked:true});
+  else await sb.from('module_access').insert({student_id:studentId,module_id:moduleId,unlocked:true,progress:0});
   const on=!currentState;
   btn.className=`btn ${on?'btn-success':'btn-ghost'} btn-sm`;
   btn.textContent=on?'Desbloqueado':'Bloqueado';
