@@ -163,10 +163,10 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
   .assistant-layout{height:calc(100vh - 150px)}
   .module-detail-layout,.player-layout{flex-direction:column;height:auto}
   .module-detail-main,.player-main{padding:0}
-  .module-detail-sidebar,.player-sidebar{width:100%;border-left:none;border-top:1px solid var(--border);overflow:visible;margin-top:18px}
-  .module-detail-sidebar .sidebar-list,.player-sidebar .sidebar-list{max-height:none}
+  .module-detail-sidebar,.player-sidebar{display:none}
   .module-detail-hero{height:160px}
-  #view-module-detail,#view-player{padding:18px 16px}
+  #view-module-detail{padding:18px 16px}
+  #view-player{padding:0}
 }
 /* MODULES GRID */
 #view-classes{position:relative}.modules-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
