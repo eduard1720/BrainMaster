@@ -152,22 +152,6 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
 .hamburger svg{width:20px;height:20px}
 .mobile-brand{display:flex;align-items:center;gap:9px;font-family:'Fraunces',serif;font-size:15px;color:#fff}
 .mobile-brand-mark{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,#3a3a42,#17171c);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px}
-@media(max-width:820px){
-  .sidebar{position:fixed;top:0;left:0;height:100vh;transform:translateX(-100%);transition:transform .25s ease;z-index:200;width:260px}
-  .sidebar.open{transform:translateX(0)}
-  .sidebar-overlay.show{display:block}
-  .mobile-topbar{display:flex}
-  .view{padding:18px 16px}
-  .table-wrap{overflow-x:auto}
-  .data-table{min-width:560px}
-  .assistant-layout{height:calc(100vh - 150px)}
-  .module-detail-layout,.player-layout{flex-direction:column;height:auto}
-  .module-detail-main,.player-main{padding:0}
-  .module-detail-sidebar,.player-sidebar{display:none}
-  .module-detail-hero{height:160px}
-  #view-module-detail{padding:18px 16px}
-  #view-player{padding:0}
-}
 /* MODULES GRID */
 #view-classes{position:relative}.modules-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
 .module-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:transform .2s,box-shadow .2s,border-color .2s}
@@ -487,6 +471,43 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
 /* VISOR NOTAS */
 .fc-stage{padding:6px 0}
 .fc-note{min-height:200px;max-height:48vh;overflow:auto;display:flex;align-items:center;justify-content:center;text-align:center;padding:28px;border-radius:16px;border:1px solid var(--border2);background:var(--surface);color:var(--ink);font-size:18px;line-height:1.55;white-space:pre-wrap;word-break:break-word}
+/* MODO VOZ */
+#voice-screen{position:fixed;inset:0;z-index:600;background:#06060a;display:none;flex-direction:column;align-items:center;justify-content:center;overflow:hidden}
+#voice-screen.show{display:flex}
+#voice-screen::after{content:'';position:absolute;left:50%;bottom:-12%;transform:translateX(-50%);width:150%;height:48%;background:radial-gradient(ellipse at center,rgba(90,110,235,.4),rgba(168,85,247,.18),transparent 70%);filter:blur(50px);pointer-events:none}
+.voice-orb{position:relative;width:130px;height:130px;border-radius:50%;animation:orbpulse 2.8s ease-in-out infinite;z-index:1}
+.voice-orb::before{content:'';position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg,#4f8cff,#a855f7,#ec4899,#f5a623,#22d3ee,#4f8cff);box-shadow:0 0 80px -6px rgba(124,58,237,.7);animation:orbspin 8s linear infinite}
+.voice-orb.listening{animation:orbpulse 1.6s ease-in-out infinite}
+.voice-orb.thinking{opacity:.85}
+.voice-orb.thinking::before{animation:orbspin 2.5s linear infinite}
+.voice-orb.speaking{animation:orbpulse .9s ease-in-out infinite}
+.voice-orb.speaking::before{animation:orbspin 4s linear infinite}
+@keyframes orbspin{to{transform:rotate(360deg)}}
+@keyframes orbpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.09)}}
+.voice-status{position:relative;z-index:1;margin-top:34px;font-size:19px;color:#e8eaed;text-align:center;padding:0 24px;max-width:90%;line-height:1.4;min-height:28px}
+.voice-controls{position:absolute;bottom:46px;display:flex;gap:44px;align-items:center;z-index:1}
+.voice-btn{width:58px;height:58px;border-radius:50%;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;transition:all .15s}
+.voice-btn:hover{background:rgba(255,255,255,.16)}
+.voice-btn svg{width:24px;height:24px}
+.voice-btn.mic.active{background:#fff;color:#06060a;border-color:#fff}
+.voice-btn.close{background:rgba(255,255,255,.08)}
+/* ===== RESPONSIVE MÓVIL (al final para tener prioridad) ===== */
+@media(max-width:820px){
+  .sidebar{position:fixed;top:0;left:0;height:100vh;transform:translateX(-100%);transition:transform .25s ease;z-index:200;width:260px}
+  .sidebar.open{transform:translateX(0)}
+  .sidebar-overlay.show{display:block}
+  .mobile-topbar{display:flex}
+  .view{padding:18px 16px}
+  .table-wrap{overflow-x:auto}
+  .data-table{min-width:560px}
+  .assistant-layout{height:calc(100vh - 150px)}
+  .module-detail-layout,.player-layout{flex-direction:column;height:auto}
+  .module-detail-main,.player-main{padding:0}
+  .module-detail-sidebar,.player-sidebar{display:none!important}
+  .module-detail-hero{height:160px}
+  #view-module-detail{padding:18px 16px}
+  #view-player{padding:0}
+}
 </style>
 <script>document.addEventListener('DOMContentLoaded',function(){var ls=document.getElementById('login-screen');var app=document.getElementById('app');if(ls)ls.style.display='flex';if(app)app.style.display='none';});</script>
 
@@ -695,6 +716,7 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
           <div class="chat-hdr">
             <div class="ai-av"><svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 012 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 017 7H3a7 7 0 017-7h1V5.73A2 2 0 0112 2z"/></svg></div>
             <div class="f1"><div class="chat-hdr-name">Alex — Tutor de Inglés</div><div class="chat-hdr-status"><div class="status-dot"></div>Listo para conversar<div class="speaking-bars" id="speaking-bars"><div class="sp-b"></div><div class="sp-b"></div><div class="sp-b"></div><div class="sp-b"></div></div></div></div>
+            <button class="btn btn-ghost btn-sm" onclick="openVoiceMode()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" width="15" height="15" style="margin-right:2px"><path d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z"/></svg>Hablar</button>
             <button class="btn btn-ghost btn-sm" onclick="clearChat()">Nueva sesión</button>
           </div>
           <div class="chat-msgs" id="chat-msgs"></div>
@@ -1070,6 +1092,16 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
       <button class="btn btn-danger" id="sp-delete-btn">Eliminar alumno</button>
       <div class="flex gap8"><select class="input" id="sp-group-select" style="width:150px"><option value="">Sin grupo</option><option value="Grupo A">Grupo A</option><option value="Grupo B">Grupo B</option><option value="Grupo C">Grupo C</option></select><button class="btn btn-primary" id="sp-save-group-btn">Guardar grupo</button></div>
     </div>
+  </div>
+</div>
+
+<!-- MODO VOZ (Alex) -->
+<div id="voice-screen">
+  <div class="voice-orb" id="voice-orb"></div>
+  <div class="voice-status" id="voice-status">Toca el micrófono y habla</div>
+  <div class="voice-controls">
+    <button class="voice-btn mic active" id="voice-mic-btn" onclick="toggleVoiceMic()" aria-label="Micrófono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z"/></svg></button>
+    <button class="voice-btn close" onclick="closeVoiceMode()" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
   </div>
 </div>
 
@@ -2856,6 +2888,78 @@ function setRecState(on){
 function handleKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}}
 function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,96)+'px';}
 function setSuggest(t){showView('assistant');document.getElementById('chat-input').value=t;document.getElementById('chat-input').focus();}
+
+// ═══════════════════════
+// MODO VOZ (Alex)
+// ═══════════════════════
+let voiceRec=null,voiceActive=false,voiceState='idle';
+function setVoiceUI(state,text){
+  voiceState=state;
+  const orb=document.getElementById('voice-orb');if(orb)orb.className='voice-orb '+(state==='idle'?'':state);
+  if(text!==undefined)document.getElementById('voice-status').textContent=text;
+  const mic=document.getElementById('voice-mic-btn');if(mic)mic.classList.toggle('active',state==='listening');
+}
+function openVoiceMode(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){toast('Tu navegador no soporta reconocimiento de voz','error');return;}
+  if(synth)synth.cancel();
+  document.getElementById('voice-screen').classList.add('show');
+  voiceActive=true;
+  if(!voiceRec){
+    voiceRec=new SR();voiceRec.continuous=false;voiceRec.interimResults=true;voiceRec.lang='en-US';
+    voiceRec.onresult=e=>{
+      let final='',interim='';
+      for(let i=e.resultIndex;i<e.results.length;i++)e.results[i].isFinal?final+=e.results[i][0].transcript:interim+=e.results[i][0].transcript;
+      if(voiceState==='listening')document.getElementById('voice-status').textContent=(final||interim||'Escuchando...');
+      if(final)voiceRec._final=(voiceRec._final||'')+final;
+    };
+    voiceRec.onend=()=>{
+      if(!voiceActive)return;
+      const t=(voiceRec._final||'').trim();voiceRec._final='';
+      if(t&&voiceState==='listening')voiceProcess(t);
+      else if(voiceState==='listening'){try{voiceRec.start();}catch(e){}}
+    };
+    voiceRec.onerror=ev=>{if(voiceActive&&voiceState==='listening'&&ev.error!=='aborted')setTimeout(()=>{try{voiceRec.start();}catch(e){}},600);};
+  }
+  voiceListen();
+}
+function voiceListen(){
+  if(!voiceActive)return;
+  setVoiceUI('listening','Escuchando...');
+  try{voiceRec.start();}catch(e){}
+}
+async function voiceProcess(text){
+  setVoiceUI('thinking','Pensando...');
+  if(synth)synth.cancel();
+  try{addMsg('user',text);}catch(e){}
+  chatHistory.push({role:'user',content:text});
+  let reply;
+  try{
+    if(ANTHROPIC_KEY==='TU_API_KEY_AQUI'){reply=getDemoReply(text);}
+    else{
+      const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':ANTHROPIC_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:600,system:(typeof SYSTEM_PROMPT!=='undefined'?SYSTEM_PROMPT:''),messages:chatHistory.slice(-12)})});
+      const d=await res.json();reply=d.content?.[0]?.text||'Sorry, try again.';
+    }
+  }catch(e){reply='Sorry, there was a connection error.';}
+  try{addMsg('ai',reply);}catch(e){}
+  chatHistory.push({role:'assistant',content:reply});
+  if(!voiceActive)return;
+  const spoken=reply.replace(/\[[^\]]*\]/g,' ').replace(/\*\*/g,'').replace(/[#>*_`]/g,'').replace(/\n+/g,'. ').replace(/\s+/g,' ').trim();
+  setVoiceUI('speaking','Alex está hablando…');
+  speakText(spoken,()=>{ if(voiceActive)voiceListen(); });
+}
+function toggleVoiceMic(){
+  if(!voiceActive)return;
+  if(voiceState==='listening'){try{voiceRec.stop();}catch(e){}setVoiceUI('idle','Pausado · toca el micrófono');}
+  else{if(synth)synth.cancel();voiceListen();}
+}
+function closeVoiceMode(){
+  voiceActive=false;
+  try{voiceRec&&voiceRec.stop();}catch(e){}
+  if(synth)synth.cancel();
+  setVoiceUI('idle','');
+  document.getElementById('voice-screen').classList.remove('show');
+}
 </script>
 </body>
 </html>
