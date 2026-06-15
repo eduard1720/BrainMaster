@@ -21,6 +21,7 @@
 }
 html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink)}
 button,input,textarea,select,optgroup{font-family:'DM Sans',sans-serif}
+svg{stroke-linecap:round;stroke-linejoin:round}
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
 .hidden{display:none!important}
 .flex{display:flex}.col{flex-direction:column}.gap4{gap:4px}.gap6{gap:6px}.gap8{gap:8px}.gap12{gap:12px}.gap16{gap:16px}
@@ -100,6 +101,8 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
 #login-screen #login-btn{width:100%;justify-content:center;background:#e8eaed;color:#0a0a0d;border:none;border-radius:10px;padding:14px;font-size:14.5px;font-weight:700;box-shadow:0 8px 22px -8px rgba(255,255,255,.2);transition:all .18s}
 #login-screen #login-btn:hover{background:#fff;box-shadow:0 10px 26px -8px rgba(255,255,255,.3)}
 #login-screen #login-btn:disabled{opacity:.55;cursor:default;box-shadow:none}
+.login-forgot{font-size:12.5px;color:#b9bcc4;cursor:pointer;transition:color .15s}
+.login-forgot:hover{color:#fff;text-decoration:underline}
 .login-demo{margin-top:26px;border-top:1px solid rgba(255,255,255,.08);padding-top:20px}
 .login-demo-label{font-size:10.5px;color:#71757f;text-transform:uppercase;letter-spacing:.7px;font-weight:600;margin-bottom:12px;text-align:center}
 .demo-btn{display:flex;align-items:center;justify-content:space-between;width:100%;padding:11px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03);cursor:pointer;font-family:inherit;transition:all .15s}
@@ -158,6 +161,12 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
   .table-wrap{overflow-x:auto}
   .data-table{min-width:560px}
   .assistant-layout{height:calc(100vh - 150px)}
+  .module-detail-layout,.player-layout{flex-direction:column;height:auto}
+  .module-detail-main,.player-main{padding:0}
+  .module-detail-sidebar,.player-sidebar{width:100%;border-left:none;border-top:1px solid var(--border);overflow:visible;margin-top:18px}
+  .module-detail-sidebar .sidebar-list,.player-sidebar .sidebar-list{max-height:none}
+  .module-detail-hero{height:160px}
+  #view-module-detail,#view-player{padding:18px 16px}
 }
 /* MODULES GRID */
 #view-classes{position:relative}.modules-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
@@ -511,6 +520,7 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
         <div class="field"><label class="label">Contraseña</label><input class="input" type="password" id="inp-pass" placeholder="••••••••" autocomplete="current-password"><div class="login-error" id="login-err">Correo o contraseña incorrectos</div></div>
       </div>
       <button class="btn btn-primary w100" id="login-btn" onclick="doLogin()">Ingresar</button>
+      <div style="text-align:center;margin-top:12px"><span class="login-forgot" onclick="forgotPassword()">¿Olvidaste tu contraseña?</span></div>
       <div class="login-demo">
         <div class="login-demo-label">Acceso de demostración</div>
         <button class="demo-btn" onclick="fillLogin('rubenJ@gmail.com','ruben123')">
@@ -702,11 +712,11 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
     <div id="view-progress" class="view">
       <div class="page-hdr"><div class="page-title">Mi Progreso</div><div class="page-sub">Sigue tu avance en el curso</div></div>
       <div class="progress-stats">
-        <div class="pstat-card"><div class="pstat-icon" style="background:rgba(255,255,255,.1)"><svg viewBox="0 0 24 24" stroke="var(--accent)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><div class="pstat-num text-accent" id="prog-time">0h</div><div class="pstat-lbl">Tiempo estudiado</div></div>
-        <div class="pstat-card"><div class="pstat-icon" style="background:rgba(0,229,160,.1)"><svg viewBox="0 0 24 24" stroke="var(--green)" stroke-width="2"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13"/></svg></div><div class="pstat-num text-green" id="prog-vocab-count">0</div><div class="pstat-lbl">Palabras aprendidas</div></div>
-        <div class="pstat-card"><div class="pstat-icon" style="background:rgba(255,149,0,.1)"><svg viewBox="0 0 24 24" stroke="var(--warn)" stroke-width="2"><path d="M15 10l4.553-2.276A1 1 0 0121 8.723v6.554"/></svg></div><div class="pstat-num text-warn" id="prog-modules">0/0</div><div class="pstat-lbl">Módulos completados</div></div>
-        <div class="pstat-card"><div class="pstat-icon" style="background:rgba(255,69,96,.1)"><svg viewBox="0 0 24 24" stroke="var(--red)" stroke-width="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div><div class="pstat-num text-red" id="prog-exams">0/0</div><div class="pstat-lbl">Exámenes aprobados</div></div>
-        <div class="pstat-card"><div class="pstat-icon" style="background:rgba(168,85,247,.1)"><svg viewBox="0 0 24 24" stroke="#a855f7" stroke-width="2"><path d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/><path d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/></svg></div><div class="pstat-num" style="color:#a855f7" id="prog-avg">0%</div><div class="pstat-lbl">Promedio en exámenes</div></div>
+        <div class="pstat-card"><div class="pstat-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><div class="pstat-num" id="prog-time">0h</div><div class="pstat-lbl">Tiempo estudiado</div></div>
+        <div class="pstat-card"><div class="pstat-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 7c-1.5-1-4-1.5-6-1.5S2.8 6 2 6.5v12c.8-.5 2.5-1 4-1s4.5.5 6 1.5m0-12c1.5-1 4-1.5 6-1.5s3.2.5 4 1v12c-.8-.5-2.5-1-4-1s-4.5.5-6 1.5m0-12v12"/></svg></div><div class="pstat-num" id="prog-vocab-count">0</div><div class="pstat-lbl">Palabras aprendidas</div></div>
+        <div class="pstat-card"><div class="pstat-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div><div class="pstat-num" id="prog-modules">0/0</div><div class="pstat-lbl">Módulos completados</div></div>
+        <div class="pstat-card"><div class="pstat-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg></div><div class="pstat-num" id="prog-exams">0/0</div><div class="pstat-lbl">Exámenes aprobados</div></div>
+        <div class="pstat-card"><div class="pstat-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M3 21h18"/><rect x="5" y="11" width="3" height="7" rx="1"/><rect x="10.5" y="6" width="3" height="12" rx="1"/><rect x="16" y="13" width="3" height="5" rx="1"/></svg></div><div class="pstat-num" id="prog-avg">0%</div><div class="pstat-lbl">Promedio en exámenes</div></div>
       </div>
       <div class="week-chart-card"><div class="week-chart-title">Actividad semanal (minutos)</div><div class="bars" id="week-bars"></div></div>
 
@@ -1124,6 +1134,27 @@ document.getElementById('inp-pass').addEventListener('keydown',e=>{if(e.key==='E
 document.getElementById('inp-email').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 function fillLogin(email,pass){document.getElementById('inp-email').value=email;document.getElementById('inp-pass').value=pass;}
 
+async function forgotPassword(){
+  const email=document.getElementById('inp-email').value.trim();
+  if(!email){toast('Escribe tu correo arriba y vuelve a tocar el enlace','error');document.getElementById('inp-email').focus();return;}
+  try{
+    const{error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin});
+    if(error){toast('Error: '+error.message,'error');return;}
+    toast('Te enviamos un correo para restablecer tu contraseña','success');
+  }catch(e){toast('No se pudo enviar el correo','error');}
+}
+
+// Cuando el alumno vuelve desde el enlace de recuperación
+sb.auth.onAuthStateChange(async (event,session)=>{
+  if(event==='PASSWORD_RECOVERY'&&session){
+    const prof=await getProfile(session.user.id);
+    currentUser={id:session.user.id,email:session.user.email,name:prof?.full_name||session.user.email,group:prof?.group_name||'',plan30:!!prof?.plan30_access};
+    isAdmin=false;
+    document.getElementById('login-err').style.display='none';
+    document.getElementById('change-pass-modal').classList.remove('hidden');
+  }
+});
+
 async function doLogin(){
   const email=document.getElementById('inp-email').value.trim();
   const pass=document.getElementById('inp-pass').value;
@@ -1138,6 +1169,7 @@ async function doLogin(){
   const profile=await getProfile(data.user.id);
   currentUser={id:data.user.id,email:data.user.email,name:profile?.full_name||(email.split('@')[0].charAt(0).toUpperCase()+email.split('@')[0].slice(1)),group:profile?.group_name||'',plan30:!!profile?.plan30_access};
   isAdmin=false;
+  try{sb.from('profiles').update({last_access:new Date().toISOString()}).eq('id',data.user.id).then(()=>{},()=>{});}catch(e){}
   if(profile?.must_change_password){
     document.getElementById('login-screen').style.display='none';
     document.getElementById('app').style.display='flex';
@@ -2403,7 +2435,7 @@ function renderGroupsView(filter='',groupFilter=''){
       <td class="text-muted fs-12">${s.email}</td>
       <td><span class="badge ${gb[s.group_name]||'badge-muted'}">${s.group_name}</span></td>
       <td><div class="flex ai-center gap8"><div style="flex:1;height:6px;background:rgba(255,255,255,.08);border-radius:3px;min-width:60px;overflow:hidden"><div style="height:100%;border-radius:3px;background:linear-gradient(90deg,#e8eaed,#9ca3af);width:${pct}%"></div></div><span class="fs-11 text-muted">${s.unlocked||0}/${published}</span></div></td>
-      <td class="fs-12 text-muted">${s.last_access||'—'}</td>
+      <td class="fs-12 text-muted">${s.last_access?new Date(s.last_access).toLocaleDateString('es-ES',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—'}</td>
       <td><div class="col-actions"><button class="btn btn-ghost btn-xs" onclick="openStudentProfile('${s.id}')">Ver perfil</button></div></td>
     </tr>`;
   }).join('');
