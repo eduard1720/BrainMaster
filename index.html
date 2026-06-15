@@ -2902,7 +2902,8 @@ function setVoiceUI(state,text){
 function openVoiceMode(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR){toast('Tu navegador no soporta reconocimiento de voz','error');return;}
-  if(synth)synth.cancel();
+  // Desbloquear la voz del navegador dentro del gesto del usuario (necesario en móvil)
+  try{if(synth){synth.cancel();const u0=new SpeechSynthesisUtterance(' ');u0.volume=0;synth.speak(u0);}}catch(e){}
   document.getElementById('voice-screen').classList.add('show');
   voiceActive=true;
   if(!voiceRec){
@@ -2921,7 +2922,11 @@ function openVoiceMode(){
     };
     voiceRec.onerror=ev=>{if(voiceActive&&voiceState==='listening'&&ev.error!=='aborted')setTimeout(()=>{try{voiceRec.start();}catch(e){}},600);};
   }
-  voiceListen();
+  // Saludo inicial hablado (prueba de voz) + arranque seguro de la escucha
+  setVoiceUI('speaking','Alex está hablando…');
+  let started=false;const startListen=()=>{if(!started&&voiceActive){started=true;voiceListen();}};
+  speakText("Hi! I'm Alex, your English tutor. What would you like to talk about?",startListen);
+  setTimeout(startListen,5000);
 }
 function voiceListen(){
   if(!voiceActive)return;
