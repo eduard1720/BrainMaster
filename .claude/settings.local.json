@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(awk '{ print NR\": \"length\\($0\\) }' \"C:\\\\Users\\\\eduar\\\\OneDrive\\\\Proyectos\\\\ingles_web\\\\index.html\")",
+      "Bash(sort -t: -k2 -nr)",
+      "Bash(awk 'NR==109 { print substr\\($0,1,400\\) }' \"C:\\\\Users\\\\eduar\\\\OneDrive\\\\Proyectos\\\\ingles_web\\\\index.html\")",
+      "Bash(awk 'NR==70 { print substr\\($0,1,400\\) }' \"C:\\\\Users\\\\eduar\\\\OneDrive\\\\Proyectos\\\\ingles_web\\\\index.html\")",
+      "Bash(py --version)",
+      "Bash(python extract_imgs.py)",
+      "Bash(awk 'NR==70 || NR==109 { print NR\": \"substr\\($0,1,160\\)\"...\" }' index.html)",
+      "mcp__Claude_Preview__preview_start"
+    ]
+  }
+}
