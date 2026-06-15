@@ -507,6 +507,22 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
   .module-detail-hero{height:160px}
   #view-module-detail{padding:18px 16px}
   #view-player{padding:0}
+  /* Modales: apilar campos y ajustar a pantalla */
+  .modal-bg{padding:14px}
+  .modal-box{padding:20px;border-radius:14px}
+  .modal-box.lg,.modal-box.xl{max-width:540px}
+  .modal-box .flex.gap12,.modal-box .flex.gap16{flex-direction:column;gap:12px}
+  .modal-box .flex.gap12>.field,.modal-box .flex.gap16>.field{width:100%!important}
+  /* Cabeceras con botón de acción */
+  .page-hdr.flex{flex-wrap:wrap;gap:12px}
+  .page-hdr .flex{flex-wrap:wrap}
+  .page-hdr .input{width:100%!important}
+  /* Dashboard: apilar gráficos */
+  .dash-charts,.dash-bottom{flex-direction:column}
+  .dash-card[style*="flex"]{flex:1 1 auto!important}
+  /* Sesiones / tarjetas */
+  .ses-card{flex-wrap:wrap}
+  .page-title{font-size:22px}
 }
 </style>
 <script>document.addEventListener('DOMContentLoaded',function(){var ls=document.getElementById('login-screen');var app=document.getElementById('app');if(ls)ls.style.display='flex';if(app)app.style.display='none';});</script>
@@ -847,7 +863,7 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
 
     <!-- PLAN DE 30 DÍAS -->
     <div id="view-plan30" class="view">
-      <div class="page-hdr"><div class="page-title">Plan de 30 días</div><div class="page-sub">10 clases de marketing</div></div>
+      <div class="page-hdr"><div class="page-title">Plan de 30 días</div><div class="page-sub">Domina el marketing digital paso a paso</div></div>
       <div id="extra-content-plan30"></div>
     </div>
 
@@ -2414,6 +2430,7 @@ function openExtraModal(cat,v=null){
   document.getElementById('extra-editing-id').value=v?.id||'';
   document.getElementById('extra-cat').value=v?v.category:cat;
   document.getElementById('extra-title').value=v?.title||'';
+  document.getElementById('extra-title').placeholder=(v?v.category:cat)==='godtalks'?'Ej: Semana 1 — Dios tiene un plan para ti':'Ej: Clase 1 — Introducción al marketing';
   document.getElementById('extra-desc').value=v?.description||'';
   document.getElementById('extra-lib').value=v?.bunny_library_id||'';
   document.getElementById('extra-vid').value=v?.bunny_video_id||'';
