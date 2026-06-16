@@ -981,7 +981,6 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
       <div class="flex gap12">
         <div class="field f1"><label class="label">Fecha</label><input class="input" type="date" id="ses-date"></div>
         <div class="field" style="width:120px"><label class="label">Hora</label><input class="input" type="time" id="ses-time"></div>
-        <div class="field" style="width:120px"><label class="label">Duración</label><input class="input" id="ses-duration" placeholder="Ej: 60 min"></div>
       </div>
       <div class="field"><label class="label">Enlace de la reunión (Zoom, Meet, etc.)</label><input class="input" id="ses-url" placeholder="https://..."></div>
       <div class="flex gap12">
@@ -1541,7 +1540,7 @@ function renderAdminSessions(){
     const aud=s.audience_type==='all'||!s.audience_type?'<span class="badge badge-muted">Todos</span>':`<span class="badge badge-accent">${sesAudience(s)}</span>`;
     return `<tr>
       <td><span class="fw-500">${s.title}</span>${s.description?`<div class="fs-11 text-muted">${s.description}</div>`:''}</td>
-      <td class="fs-12 text-muted">${fmtSesFull(d)}${s.duration?' · '+s.duration:''}</td>
+      <td class="fs-12 text-muted">${fmtSesFull(d)}</td>
       <td>${aud}</td>
       <td class="fs-12">${s.join_url?`<a href="${s.join_url}" target="_blank" class="text-accent">Enlace</a>`:'—'}</td>
       <td><div class="col-actions"><button class="btn btn-ghost btn-xs" onclick="editSession(${s.id})">Editar</button><button class="btn btn-danger btn-xs" onclick="deleteSession(${s.id})">Eliminar</button></div></td>
@@ -1566,7 +1565,6 @@ function renderStudentSessions(){
     const dd=d?d.getDate():'–';const mm=d?MES_ABR[d.getMonth()]:'';
     const meta=[];
     if(d)meta.push(d.toLocaleDateString('es-ES',{weekday:'long'})+' · '+d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}));
-    if(s.duration)meta.push(s.duration);
     meta.push('Dirigida a: '+sesAudience(s));
     const btn=s.join_url?`<a class="btn ${live?'btn-primary':'btn-ghost'} btn-sm" href="${s.join_url}" target="_blank" style="justify-content:center">${live?'Unirse ahora':'Unirse'}</a>`:'';
     return `<div class="ses-card">
@@ -1591,7 +1589,6 @@ function openSessionModal(ses=null){
   document.getElementById('ses-editing-id').value=ses?.id||'';
   document.getElementById('ses-title').value=ses?.title||'';
   document.getElementById('ses-desc').value=ses?.description||'';
-  document.getElementById('ses-duration').value=ses?.duration||'';
   document.getElementById('ses-url').value=ses?.join_url||'';
   let dv='',tv='';
   if(ses?.starts_at){const d=new Date(ses.starts_at);dv=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);tv=('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);}
@@ -1615,7 +1612,6 @@ async function saveSession(){
   const aud=document.getElementById('ses-audience').value;
   const payload={
     title,description:document.getElementById('ses-desc').value.trim(),
-    duration:document.getElementById('ses-duration').value.trim(),
     join_url:document.getElementById('ses-url').value.trim(),
     starts_at:new Date(date+'T'+time).toISOString(),
     audience_type:aud,
