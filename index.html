@@ -645,7 +645,7 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
       <div class="nav-tab hidden" data-view="admin-add" onclick="showView('admin-add')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>Añadir alumno</div>
       <div class="nav-tab hidden" data-view="admin-materials" onclick="showView('admin-materials')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 016.5 17H20M4 19.5A2.5 2.5 0 006.5 22H20v-5M4 19.5V5a2 2 0 012-2h14v14"/></svg>Materiales</div>
       <div class="nav-tab hidden" data-view="admin-sessions" onclick="showView('admin-sessions')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Sesiones en vivo</div>
-      <div class="nav-tab" data-view="plan30" onclick="showView('plan30')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>Plan de 30 días</div>
+      <div class="nav-tab" data-view="plan30" onclick="showView('plan30')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M2 20h20"/></svg>Plan de 30 días</div>
       <div class="nav-tab" data-view="godtalks" onclick="showView('godtalks')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>Dios quiere hablarte</div>
     </div>
     <div class="sidebar-foot">
@@ -807,7 +807,7 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
         <div><div class="page-title">Alumnos</div><div class="page-sub">Gestiona acceso y grupos</div></div>
         <div class="flex gap8 ai-center">
           <input class="input" id="search-student" placeholder="Buscar alumno..." style="width:200px" oninput="filterStudents(this.value)">
-          <select class="input" id="filter-group" style="width:150px" onchange="filterStudents(document.getElementById('search-student').value)"><option value="">Todos los grupos</option><option value="Grupo A">Grupo A</option><option value="Grupo B">Grupo B</option><option value="Grupo C">Grupo C</option><option value="Sin grupo">Sin grupo</option></select>
+          <select class="input" id="filter-group" style="width:150px" onchange="filterStudents(document.getElementById('search-student').value)"></select>
         </div>
       </div>
       <div id="group-cards" class="flex gap12" style="margin-bottom:20px;flex-wrap:wrap"></div>
@@ -825,7 +825,7 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
           <div class="field"><label class="label">Nombre completo</label><input class="input" id="new-name" placeholder="Nombre del alumno"></div>
           <div class="field"><label class="label">Correo electrónico</label><input class="input" type="email" id="new-email" placeholder="alumno@correo.com"></div>
           <div class="field"><label class="label">Contraseña temporal</label><input class="input" type="password" id="new-pass" placeholder="Mínimo 6 caracteres"><div style="font-size:11px;color:var(--muted);margin-top:5px;display:flex;align-items:center;gap:5px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>El alumno debe cambiar esta contraseña en su primer ingreso</div></div>
-          <div class="field"><label class="label">Grupo (opcional)</label><select class="input" id="new-group"><option value="">Sin grupo</option><option value="Grupo A">Grupo A</option><option value="Grupo B">Grupo B</option><option value="Grupo C">Grupo C</option></select></div>
+          <div class="field"><label class="label">Grupo (opcional)</label><select class="input" id="new-group"></select></div>
           <button class="btn btn-primary" onclick="createStudent()">Crear alumno</button>
         </div>
       </div>
@@ -1007,7 +1007,7 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
           </select>
         </div>
         <div class="field f1" id="ses-group-field" style="display:none"><label class="label">Grupo</label>
-          <select class="input" id="ses-group"><option value="Grupo A">Grupo A</option><option value="Grupo B">Grupo B</option><option value="Grupo C">Grupo C</option></select>
+          <select class="input" id="ses-group"></select>
         </div>
         <div class="field f1" id="ses-module-field" style="display:none"><label class="label">Módulo</label>
           <select class="input" id="ses-module"></select>
@@ -1120,7 +1120,7 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;padding-top:14px;border-top:0.5px solid var(--border)">
       <button class="btn btn-danger" id="sp-delete-btn">Eliminar alumno</button>
-      <div class="flex gap8"><select class="input" id="sp-group-select" style="width:150px"><option value="">Sin grupo</option><option value="Grupo A">Grupo A</option><option value="Grupo B">Grupo B</option><option value="Grupo C">Grupo C</option></select><button class="btn btn-primary" id="sp-save-group-btn">Guardar grupo</button></div>
+      <div class="flex gap8"><select class="input" id="sp-group-select" style="width:150px"></select><button class="btn btn-primary" id="sp-save-group-btn">Guardar grupo</button></div>
     </div>
   </div>
 </div>
@@ -1155,6 +1155,15 @@ const SUPPORT_HOURS=[
   {d:'Sábados', h:'9:00 a 13:00'},
   {d:'Domingos', h:'Cerrado'}
 ];
+// ── Grupos: 1 al 50, formato "Grupo N vip" ──
+const GROUPS=Array.from({length:50},(_,i)=>`Grupo ${i+1} vip`);
+function groupOpts(sel){return GROUPS.map(g=>`<option value="${g}"${g===sel?' selected':''}>${g}</option>`).join('');}
+function populateGroupSelects(){
+  const fg=document.getElementById('filter-group');if(fg)fg.innerHTML=`<option value="">Todos los grupos</option>`+groupOpts()+`<option value="Sin grupo">Sin grupo</option>`;
+  const ng=document.getElementById('new-group');if(ng)ng.innerHTML=`<option value="">Sin grupo</option>`+groupOpts();
+  const sg=document.getElementById('ses-group');if(sg)sg.innerHTML=groupOpts();
+  const sp=document.getElementById('sp-group-select');if(sp)sp.innerHTML=`<option value="">Sin grupo</option>`+groupOpts();
+}
 
 
 // ═══════════════════════
@@ -1257,6 +1266,7 @@ async function launchApp(){
   document.getElementById('app').style.display='flex';
   document.getElementById('nav-av').textContent=(currentUser.name||'??').substring(0,2).toUpperCase();
   document.getElementById('nav-name').textContent=currentUser.name||'---';
+  populateGroupSelects();
   resetNavTabs();
   if(isAdmin){
     ['classes','assistant','progress','materials','sessions','support'].forEach(v=>{const el=document.querySelector(`.nav-tab[data-view="${v}"]`);if(el)el.classList.add('hidden');});
@@ -1611,7 +1621,7 @@ function openSessionModal(ses=null){
   document.getElementById('ses-time').value=tv;
   document.getElementById('ses-audience').value=ses?.audience_type||'all';
   populateSesModules(ses?.audience_module);
-  document.getElementById('ses-group').value=ses?.audience_group||'Grupo A';
+  document.getElementById('ses-group').value=ses?.audience_group||GROUPS[0];
   toggleSessionAudience();
   document.getElementById('session-modal').classList.remove('hidden');
 }
@@ -2529,25 +2539,28 @@ async function deleteExtra(id){
 function renderGroupsView(filter='',groupFilter=''){
   const students=allStudentsCache;
   const published=allModules.filter(m=>m.is_published).length;
-  const groups=['Grupo A','Grupo B','Grupo C','Sin grupo'];
-  const gc={'Grupo A':'#e8eaed','Grupo B':'#00e5a0','Grupo C':'#ff9500','Sin grupo':'#4a7090'};
-  document.getElementById('group-cards').innerHTML=groups.map(g=>`
-    <div class="group-card"><div class="group-card-name"><div class="group-dot" style="background:${gc[g]}"></div>${g}</div>
-    <div class="group-card-count" style="color:${gc[g]}">${students.filter(s=>s.group_name===g).length}</div>
-    <div class="group-card-lbl">alumnos</div></div>`).join('');
+  // Solo mostramos tarjetas de grupos que tienen alumnos (+ "Sin grupo" si aplica)
+  const cnt={};students.forEach(s=>{const g=s.group_name||'Sin grupo';cnt[g]=(cnt[g]||0)+1;});
+  const groups=GROUPS.filter(g=>cnt[g]);if(cnt['Sin grupo'])groups.push('Sin grupo');
+  document.getElementById('group-cards').innerHTML=groups.length?groups.map(g=>{
+    const c=g==='Sin grupo'?'#4a7090':'#e8eaed';
+    return `<div class="group-card"><div class="group-card-name"><div class="group-dot" style="background:${c}"></div>${g}</div>
+    <div class="group-card-count" style="color:${c}">${cnt[g]}</div>
+    <div class="group-card-lbl">alumnos</div></div>`;}).join('')
+    :'<div class="group-card"><div class="group-card-lbl">Aún no hay alumnos en ningún grupo.</div></div>';
   let filtered=students.filter(s=>{
     const ms=!filter||s.full_name.toLowerCase().includes(filter.toLowerCase())||s.email.toLowerCase().includes(filter.toLowerCase());
     const mg=!groupFilter||s.group_name===groupFilter;
     return ms&&mg;
   });
   document.getElementById('groups-count-lbl').textContent=`${filtered.length} de ${students.length} alumnos`;
-  const gb={'Grupo A':'badge-accent','Grupo B':'badge-green','Grupo C':'badge-warn','Sin grupo':'badge-muted'};
+  const gbcls=g=>(!g||g==='Sin grupo')?'badge-muted':'badge-accent';
   document.getElementById('groups-tbody').innerHTML=filtered.map(s=>{
     const pct=published>0?Math.round((s.unlocked||0)/published*100):0;
     return `<tr>
       <td><div class="flex ai-center gap8"><div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#3a3a42,#17171c);border:1px solid rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;flex-shrink:0">${s.full_name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase()}</div><span class="fw-500">${s.full_name}</span></div></td>
       <td class="text-muted fs-12">${s.email}</td>
-      <td><span class="badge ${gb[s.group_name]||'badge-muted'}">${s.group_name}</span></td>
+      <td><span class="badge ${gbcls(s.group_name)}">${s.group_name||'Sin grupo'}</span></td>
       <td><div class="flex ai-center gap8"><div style="flex:1;height:6px;background:rgba(255,255,255,.08);border-radius:3px;min-width:60px;overflow:hidden"><div style="height:100%;border-radius:3px;background:linear-gradient(90deg,#e8eaed,#9ca3af);width:${pct}%"></div></div><span class="fs-11 text-muted">${s.unlocked||0}/${published}</span></div></td>
       <td class="fs-12 text-muted">${s.last_access?new Date(s.last_access).toLocaleDateString('es-ES',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—'}</td>
       <td><div class="col-actions"><button class="btn btn-ghost btn-xs" onclick="openStudentProfile('${s.id}')">Ver perfil</button></div></td>
@@ -2572,8 +2585,8 @@ try{const res=await sb.from('profiles').select('*').eq('id',studentId).single();
   document.getElementById('sp-name').textContent=s.full_name||'—';
   document.getElementById('sp-email').textContent=s.email;
   document.getElementById('sp-group-select').value=s.group_name||'';
-  const gb={'Grupo A':'badge-accent','Grupo B':'badge-green','Grupo C':'badge-warn','Sin grupo':'badge-muted'};
-  document.getElementById('sp-group-badge').innerHTML=`<span class="badge ${gb[s.group_name]||'badge-muted'}">${s.group_name||'Sin grupo'}</span>`;
+  const gbcls=(!s.group_name||s.group_name==='Sin grupo')?'badge-muted':'badge-accent';
+  document.getElementById('sp-group-badge').innerHTML=`<span class="badge ${gbcls}">${s.group_name||'Sin grupo'}</span>`;
   let accList=[];
 try{const res=await sb.from('module_access').select('*').eq('student_id',studentId);accList=res.data||[];}catch(e){}
   document.getElementById('sp-modules').innerHTML=published.map(m=>{
