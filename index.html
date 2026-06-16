@@ -645,7 +645,7 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
       <div class="nav-tab hidden" data-view="admin-add" onclick="showView('admin-add')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>Añadir alumno</div>
       <div class="nav-tab hidden" data-view="admin-materials" onclick="showView('admin-materials')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 016.5 17H20M4 19.5A2.5 2.5 0 006.5 22H20v-5M4 19.5V5a2 2 0 012-2h14v14"/></svg>Materiales</div>
       <div class="nav-tab hidden" data-view="admin-sessions" onclick="showView('admin-sessions')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Sesiones en vivo</div>
-      <div class="nav-tab" data-view="plan30" onclick="showView('plan30')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 19V6l11-2v13M9 19a3 3 0 11-6 0 3 3 0 016 0zm11-2a3 3 0 11-6 0 3 3 0 016 0z"/></svg>Plan de 30 días</div>
+      <div class="nav-tab" data-view="plan30" onclick="showView('plan30')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>Plan de 30 días</div>
       <div class="nav-tab" data-view="godtalks" onclick="showView('godtalks')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>Dios quiere hablarte</div>
     </div>
     <div class="sidebar-foot">
@@ -922,6 +922,21 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
   </div>
 </div>
 
+<!-- MODAL ENLACE (añadir/editar) -->
+<div id="link-modal" class="modal-bg hidden">
+  <div class="modal-box">
+    <div class="modal-hdr"><span class="modal-title" id="link-modal-title">Añadir enlace</span><div class="modal-close" onclick="document.getElementById('link-modal').classList.add('hidden')"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg></div></div>
+    <div class="flex col gap12">
+      <input type="hidden" id="link-editing-id">
+      <input type="hidden" id="link-cat">
+      <div class="field"><label class="label">Título</label><input class="input" id="link-title" placeholder="Ej: Plantilla de contenidos"></div>
+      <div class="field"><label class="label">Descripción (opcional)</label><input class="input" id="link-desc" placeholder="Breve descripción"></div>
+      <div class="field"><label class="label">URL</label><input class="input" id="link-url" placeholder="https://..."></div>
+      <div class="flex jc-between ai-center" style="margin-top:4px"><span class="fs-11 text-muted">Se abrirá en una pestaña nueva.</span><button class="btn btn-primary" onclick="saveLink()">Guardar</button></div>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL MATERIAL -->
 <div id="material-modal" class="modal-bg hidden">
   <div class="modal-box">
@@ -1149,7 +1164,7 @@ let currentUser=null,isAdmin=false;
 let allModules=[],allLessons=[],allExams=[],allQuestions=[];
 let allMaterials=[],fcCards=[],fcIndex=0;
 let allSessions=[];
-let allExtra=[];
+let allExtra=[];let allExtraLinks=[];
 let allAccessCache=[],allResultsCache=[];
 let userAccess=[],allStudentsCache=[];
 let completedLessons=new Set(); // IDs de lecciones vistas por el estudiante
@@ -2380,6 +2395,8 @@ async function openAccessModal(studentId,studentName){
 async function loadExtra(){
   try{const{data}=await sb.from('extra_videos').select('*').order('order_index');allExtra=data||[];}
   catch(e){allExtra=[];}
+  try{const{data}=await sb.from('extra_links').select('*').order('order_index');allExtraLinks=data||[];}
+  catch(e){allExtraLinks=[];}
 }
 function embedUrl(url){
   if(!url)return '';
@@ -2404,14 +2421,66 @@ function renderExtra(cat){
   }
   const items=allExtra.filter(v=>v.category===cat);
   const head=isAdmin?`<div style="margin-bottom:16px"><button class="btn btn-primary" onclick="openExtraModal('${cat}')">+ Añadir video</button></div>`:'';
-  if(!items.length){cont.innerHTML=head+'<div class="card"><p class="fs-13 text-muted">Aún no hay videos en esta sección.</p></div>';return;}
-  cont.innerHTML=head+'<div class="materials-grid">'+items.map(v=>`
+  const videosHtml=items.length
+    ?'<div class="materials-grid">'+items.map(v=>`
     <div class="material-card">
       <div class="material-ic"><svg viewBox="0 0 24 24" stroke-width="1.5" fill="none"><path d="M15 10l4.553-2.276A1 1 0 0121 8.723v6.554a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg></div>
       <div><div class="material-title">${v.title}</div>${v.description?`<div class="material-desc">${v.description}</div>`:''}</div>
       <button class="btn btn-primary btn-sm w100" onclick="playVideo(${v.id})">Ver video</button>
       ${isAdmin?`<div class="flex gap6"><button class="btn btn-ghost btn-xs f1" onclick="editExtra(${v.id})">Editar</button><button class="btn btn-danger btn-xs f1" onclick="deleteExtra(${v.id})">Eliminar</button></div>`:''}
-    </div>`).join('')+'</div>';
+    </div>`).join('')+'</div>'
+    :'<div class="card"><p class="fs-13 text-muted">Aún no hay videos en esta sección.</p></div>';
+  cont.innerHTML=head+videosHtml+renderExtraLinks(cat);
+}
+function renderExtraLinks(cat){
+  const links=allExtraLinks.filter(l=>l.category===cat);
+  const addBtn=isAdmin?`<button class="btn btn-ghost btn-sm" onclick="openLinkModal('${cat}')">+ Añadir enlace</button>`:'';
+  if(!links.length&&!isAdmin)return '';
+  const cards=links.length
+    ?'<div class="materials-grid">'+links.map(l=>`
+    <div class="material-card">
+      <div class="material-ic"><svg viewBox="0 0 24 24" stroke-width="1.5" fill="none"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
+      <div><div class="material-title">${l.title}</div>${l.description?`<div class="material-desc">${l.description}</div>`:''}</div>
+      <a class="btn btn-primary btn-sm w100" href="${l.url}" target="_blank" rel="noopener" style="justify-content:center">Abrir enlace</a>
+      ${isAdmin?`<div class="flex gap6"><button class="btn btn-ghost btn-xs f1" onclick="editLink(${l.id})">Editar</button><button class="btn btn-danger btn-xs f1" onclick="deleteLink(${l.id})">Eliminar</button></div>`:''}
+    </div>`).join('')+'</div>'
+    :'<p class="fs-13 text-muted">Aún no hay enlaces en esta sección.</p>';
+  return `<div class="mat-group" style="margin-top:28px">
+    <div class="mat-group-title flex jc-between ai-center"><span>Enlaces</span>${addBtn}</div>
+    ${cards}
+  </div>`;
+}
+function openLinkModal(cat,l=null){
+  document.getElementById('link-modal-title').textContent=l?'Editar enlace':'Añadir enlace';
+  document.getElementById('link-editing-id').value=l?.id||'';
+  document.getElementById('link-cat').value=l?l.category:cat;
+  document.getElementById('link-title').value=l?.title||'';
+  document.getElementById('link-desc').value=l?.description||'';
+  document.getElementById('link-url').value=l?.url||'';
+  document.getElementById('link-modal').classList.remove('hidden');
+}
+function editLink(id){const l=allExtraLinks.find(x=>x.id===id);if(l)openLinkModal(l.category,l);}
+async function saveLink(){
+  const id=document.getElementById('link-editing-id').value;
+  const cat=document.getElementById('link-cat').value;
+  let url=document.getElementById('link-url').value.trim();
+  const payload={category:cat,title:document.getElementById('link-title').value.trim(),description:document.getElementById('link-desc').value.trim(),url,order_index:allExtraLinks.length+1};
+  if(!payload.title){toast('El título es obligatorio','error');return;}
+  if(!payload.url){toast('La URL es obligatoria','error');return;}
+  if(!/^https?:\/\//i.test(payload.url))payload.url='https://'+payload.url;
+  let err;
+  if(id){({error:err}=await sb.from('extra_links').update(payload).eq('id',id));}
+  else{({error:err}=await sb.from('extra_links').insert(payload));}
+  if(err){toast('Error: '+err.message,'error');return;}
+  toast(id?'Enlace actualizado':'Enlace añadido','success');
+  document.getElementById('link-modal').classList.add('hidden');
+  await loadExtra();renderExtra(cat);
+}
+async function deleteLink(id){
+  if(!confirm('¿Eliminar este enlace?'))return;
+  const l=allExtraLinks.find(x=>x.id===id);
+  await sb.from('extra_links').delete().eq('id',id);
+  toast('Enlace eliminado','success');await loadExtra();renderExtra(l?l.category:'plan30');
 }
 function playVideo(id){
   const v=allExtra.find(x=>x.id===id);if(!v)return;
