@@ -125,7 +125,7 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
 .sidebar-logo,.nav-tabs,.sidebar-foot{position:relative;z-index:1}
 .sidebar-logo{display:flex;align-items:center;gap:11px;padding:6px 8px 18px}
 .sidebar-logo-mark{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#3a3a42,#17171c);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:600;font-size:17px;color:#fff;flex-shrink:0}
-.sidebar-logo-name{font-family:'Fraunces',serif;font-size:15.5px;color:#fff;letter-spacing:-.2px;line-height:1.1}
+.sidebar-logo-name{font-family:'Fraunces',serif;font-size:15.5px;letter-spacing:-.2px;line-height:1.1;background:linear-gradient(120deg,#b3a4ff 0%,#7fd0ff 50%,#c89cff 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;filter:drop-shadow(0 0 6px rgba(150,130,255,.45))}
 .nav-tabs{display:flex;flex-direction:column;gap:3px;flex:1}
 .nav-tab{display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:9px;font-size:13px;color:var(--ink2);cursor:pointer;border:1px solid transparent;transition:all .15s;font-weight:500}
 .nav-tab:hover{color:#fff;background:rgba(255,255,255,.05)}
@@ -599,7 +599,7 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
       ctx.setTransform(DPR,0,0,DPR,0,0);
       var n=Math.round(Math.min(120, W*H/13000));
       parts=[];
-      for(var i=0;i<n;i++){parts.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.22,vy:(Math.random()-.5)*.22,r:Math.random()*1.6+.5,a:Math.random()*.5+.2});}
+      for(var i=0;i<n;i++){parts.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.22,vy:(Math.random()-.5)*.22,r:Math.random()*1.6+.5,a:Math.random()*.5+.2,hue:200+Math.random()*100});}
     }
     function tick(){
       requestAnimationFrame(tick);
@@ -608,18 +608,22 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
       if(!W||!H) return;
       ctx.clearRect(0,0,W,H);
       var i,j;
+      // puntos: tonos galaxia (violeta/azul/cian) con brillo neón
+      ctx.shadowBlur=8;
       for(i=0;i<parts.length;i++){
         var p=parts[i];
         p.x+=p.vx; p.y+=p.vy;
         if(p.x<-5)p.x=W+5; if(p.x>W+5)p.x=-5; if(p.y<-5)p.y=H+5; if(p.y>H+5)p.y=-5;
+        ctx.shadowColor='hsla('+p.hue+',90%,60%,.9)';
         ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,6.2832);
-        ctx.fillStyle='rgba(232,234,237,'+p.a+')'; ctx.fill();
+        ctx.fillStyle='hsla('+p.hue+',85%,70%,'+p.a+')'; ctx.fill();
       }
+      ctx.shadowBlur=0; // las líneas sin glow (rendimiento)
       for(i=0;i<parts.length;i++){
         for(j=i+1;j<parts.length;j++){
           var a=parts[i],b=parts[j],dx=a.x-b.x,dy=a.y-b.y,d=dx*dx+dy*dy;
           if(d<13500){
-            ctx.strokeStyle='rgba(180,184,200,'+(1-d/13500)*.12+')'; ctx.lineWidth=1;
+            ctx.strokeStyle='rgba(150,130,255,'+(1-d/13500)*.16+')'; ctx.lineWidth=1;
             ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
           }
         }
@@ -970,7 +974,7 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
         <div class="field f1"><label class="label">Título</label><input class="input" id="mat-title" placeholder="Ej: Guía Present Simple"></div>
         <div class="field" style="width:160px"><label class="label">Módulo</label><select class="input" id="mat-module"></select></div>
       </div>
-      <div class="field"><label class="label">Dirigido a</label><select class="input" id="mat-group"></select></div>
+      <div class="field"><label class="label">Dirigido a (vacío = todos los del módulo · Ctrl/Cmd para varios)</label><select class="input" id="mat-group" multiple size="5" style="height:auto;min-height:104px"></select></div>
       <div class="field"><label class="label">Descripción (opcional)</label><input class="input" id="mat-desc" placeholder="Breve descripción"></div>
       <div class="field"><label class="label">Tipo de material</label>
         <select class="input" id="mat-kind" onchange="toggleMaterialKind()">
@@ -1092,7 +1096,7 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
         <div class="field" style="max-width:240px"><label class="label">Tipo de examen</label><select class="input" id="exam-type"><option value="monthly">Mensual (1 módulo)</option><option value="final">Final (cada 3 módulos)</option></select></div>
         <div class="field" style="max-width:200px"><label class="label">Nota mínima para aprobar (%)</label><input class="input" id="exam-pass-score" type="number" value="70" min="1" max="100"></div>
       </div>
-      <div class="field"><label class="label">Dirigido a</label><select class="input" id="exam-group"></select></div>
+      <div class="field"><label class="label">Dirigido a (vacío = todos los del módulo · Ctrl/Cmd para varios)</label><select class="input" id="exam-group" multiple size="5" style="height:auto;min-height:104px"></select></div>
       <input type="hidden" id="exam-editing-id">
       <div style="border-top:0.5px solid var(--border);padding-top:16px">
         <div class="flex jc-between ai-center" style="margin-bottom:12px"><span class="fs-13 fw-600" style="color:var(--ink2)">Preguntas</span><button class="btn btn-ghost btn-sm" onclick="addQuestionRow()">+ Añadir pregunta</button></div>
@@ -1200,11 +1204,24 @@ const SUPPORT_HOURS=[
 // ── Grupos: 1 al 50, formato "Grupo N vip" ──
 const GROUPS=Array.from({length:50},(_,i)=>`Grupo ${i+1} vip`);
 function groupOpts(sel){return GROUPS.map(g=>`<option value="${g}"${g===sel?' selected':''}>${g}</option>`).join('');}
-// Select "Dirigido a": Todos + grupos. value '' = todos los del módulo
-function fillTargetGroup(id,sel){const e=document.getElementById(id);if(e)e.innerHTML=`<option value="">Todos los grupos del módulo</option>`+groupOpts(sel||'');}
-// ¿el contenido (material/examen) es visible para el alumno actual según su grupo?
-// target_group vacío/nulo = todos los del módulo; si tiene grupo, solo ese grupo lo ve
-function targetGroupOk(tg){return !tg||(currentUser&&currentUser.group===tg);}
+// Multi-select "Dirigido a": sin selección = todos los del módulo. Guarda lista separada por comas.
+function fillTargetGroup(id,sel){
+  const e=document.getElementById(id);if(!e)return;
+  const set=new Set(String(sel||'').split(',').map(x=>x.trim()).filter(Boolean));
+  e.innerHTML=GROUPS.map(g=>`<option value="${g}"${set.has(g)?' selected':''}>${g}</option>`).join('');
+}
+function getSelectedGroups(id){const e=document.getElementById(id);return e?[...e.selectedOptions].map(o=>o.value).filter(Boolean).join(','):'';}
+// ¿el contenido es visible para el alumno actual? tg vacío = todos; si hay grupos, su grupo debe estar en la lista
+function targetGroupOk(tg){
+  if(!tg)return true;
+  const groups=String(tg).split(',').map(x=>x.trim()).filter(Boolean);
+  return groups.length===0||groups.includes(currentUser&&currentUser.group);
+}
+// badges para mostrar a quién va dirigido (admin)
+function groupBadges(tg){
+  if(!tg)return '<span class="badge badge-muted">Todos</span>';
+  return String(tg).split(',').map(x=>x.trim()).filter(Boolean).map(g=>`<span class="badge badge-blue">${esc(g)}</span>`).join(' ');
+}
 function populateGroupSelects(){
   const fg=document.getElementById('filter-group');if(fg)fg.innerHTML=`<option value="">Todos los grupos</option>`+groupOpts()+`<option value="Sin grupo">Sin grupo</option>`;
   const ng=document.getElementById('new-group');if(ng)ng.innerHTML=`<option value="">Sin grupo</option>`+groupOpts();
@@ -1322,8 +1339,8 @@ function initSidebarFx(){
     W=host.clientWidth;H=host.clientHeight;
     cv.width=W*dpr;cv.height=H*dpr;cv.style.width=W+'px';cv.style.height=H+'px';
     ctx.setTransform(dpr,0,0,dpr,0,0);
-    const n=Math.round(W*H/5200);
-    stars=[];for(let i=0;i<n;i++)stars.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.1+.3,a:Math.random()*.5+.15,tw:Math.random()*Math.PI*2,ts:.6+Math.random()*1.4});
+    const n=Math.round(W*H/3200);
+    stars=[];for(let i=0;i<n;i++)stars.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.3+.4,a:Math.random()*.5+.3,tw:Math.random()*Math.PI*2,ts:.6+Math.random()*1.4,hue:200+Math.random()*100});
   }
   shoots=[];nextShoot=0;
   function spawn(t){
@@ -1332,18 +1349,21 @@ function initSidebarFx(){
     const y=Math.random()*H*.7;
     const ang=(Math.PI/4)+(Math.random()*.3-.15);
     const sp=2.2+Math.random()*1.8;
-    shoots.push({x,y,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp,len:60+Math.random()*60,life:0,max:90+Math.random()*40});
-    nextShoot=t+1400+Math.random()*2600;
+    shoots.push({x,y,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp,len:60+Math.random()*60,life:0,max:90+Math.random()*40,hue:200+Math.random()*100});
+    nextShoot=t+1000+Math.random()*2000;
   }
   size();
   function frame(t){
     ctx.clearRect(0,0,W,H);
-    // estrellas fijas con titileo
+    // estrellas fijas con titileo + leve brillo
+    ctx.shadowBlur=6;
     for(const s of stars){
       const a=s.a*(.55+.45*Math.sin(t*.001*s.ts+s.tw));
+      ctx.shadowColor='hsla('+s.hue+',90%,60%,.8)';
       ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,7);
-      ctx.fillStyle='rgba(255,255,255,'+a.toFixed(3)+')';ctx.fill();
+      ctx.fillStyle='hsla('+s.hue+',85%,72%,'+a.toFixed(3)+')';ctx.fill();
     }
+    ctx.shadowBlur=0;
     // estrellas fugaces
     if(t>nextShoot)spawn(t);
     for(let i=shoots.length-1;i>=0;i--){
@@ -1352,10 +1372,10 @@ function initSidebarFx(){
       const tx=sh.x-sh.vx/Math.hypot(sh.vx,sh.vy)*sh.len;
       const ty=sh.y-sh.vy/Math.hypot(sh.vx,sh.vy)*sh.len;
       const g=ctx.createLinearGradient(sh.x,sh.y,tx,ty);
-      g.addColorStop(0,'rgba(255,255,255,'+(.85*fade).toFixed(3)+')');
-      g.addColorStop(1,'rgba(255,255,255,0)');
+      g.addColorStop(0,'hsla('+sh.hue+',90%,72%,'+(.85*fade).toFixed(3)+')');
+      g.addColorStop(1,'hsla('+sh.hue+',90%,72%,0)');
       ctx.strokeStyle=g;ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(sh.x,sh.y);ctx.lineTo(tx,ty);ctx.stroke();
-      ctx.beginPath();ctx.arc(sh.x,sh.y,1.3,0,7);ctx.fillStyle='rgba(255,255,255,'+fade.toFixed(3)+')';ctx.fill();
+      ctx.beginPath();ctx.arc(sh.x,sh.y,1.3,0,7);ctx.fillStyle='hsla('+sh.hue+',90%,75%,'+fade.toFixed(3)+')';ctx.fill();
       if(sh.life>=sh.max||sh.x>W+40||sh.y>H+40)shoots.splice(i,1);
     }
     _sidefx=requestAnimationFrame(frame);
@@ -1512,7 +1532,7 @@ function renderAdminMaterials(){
     return `<tr>
       <td><span class="fw-500">${esc(m.title)}</span>${m.description?`<div class="fs-11 text-muted">${esc(m.description)}</div>`:''}</td>
       <td>${tipo}</td>
-      <td class="fs-12 text-muted">${moduleName(m.module_id)}${m.target_group?`<div><span class="badge badge-blue" style="margin-top:4px">${m.target_group}</span></div>`:''}</td>
+      <td class="fs-12 text-muted">${moduleName(m.module_id)}${m.target_group?`<div style="margin-top:4px">${groupBadges(m.target_group)}</div>`:''}</td>
       <td class="fs-12 text-muted">${cont}</td>
       <td><div class="col-actions"><button class="btn btn-ghost btn-xs" onclick="editMaterial(${m.id})">Editar</button><button class="btn btn-danger btn-xs" onclick="deleteMaterial(${m.id})">Eliminar</button></div></td>
     </tr>`;
@@ -1559,7 +1579,7 @@ function renderModuleMaterials(moduleId){
   sec.innerHTML=`<div class="lessons-section-title" style="margin-top:8px"><span>Materiales (${mats.length})</span></div>`
     +`<div class="mat-mini-list">${mats.map(m=>{
       const ic=matIconPath(m.kind);
-      const tag=isAdmin&&m.target_group?`<span class="badge badge-blue" style="margin-right:6px">${m.target_group}</span>`:'';
+      const tag=isAdmin&&m.target_group?`<span style="margin-right:6px">${groupBadges(m.target_group)}</span>`:'';
       return `<div class="mat-mini" onclick="goToMaterial(${m.id})">
         <div class="mat-mini-ic"><svg viewBox="0 0 24 24" stroke-width="1.5" fill="none">${ic}</svg></div>
         <div class="mat-mini-title">${esc(m.title)}</div>
@@ -1646,7 +1666,7 @@ async function saveMaterial(){
   if(!title){toast('El título es obligatorio','error');return;}
   if(!module_id){toast('Selecciona un módulo','error');return;}
   const btn=document.getElementById('mat-save-btn');const st=document.getElementById('mat-status');
-  const payload={title,description:document.getElementById('mat-desc').value.trim(),module_id,kind,target_group:document.getElementById('mat-group').value||null,order_index:allMaterials.length+1};
+  const payload={title,description:document.getElementById('mat-desc').value.trim(),module_id,kind,target_group:getSelectedGroups('mat-group')||null,order_index:allMaterials.length+1};
   if(kind==='flashcards'){
     const rows=document.querySelectorAll('#cards-builder .card-builder-row');
     const cards=[];rows.forEach(r=>{const t=r.querySelector('textarea').value.trim();if(t)cards.push({text:t});});
@@ -2427,7 +2447,7 @@ async function saveExam(){
     module_id:parseInt(document.getElementById('exam-module-select').value),
     pass_score:parseInt(document.getElementById('exam-pass-score').value)||70,
     exam_type:document.getElementById('exam-type').value,
-    target_group:document.getElementById('exam-group').value||null,
+    target_group:getSelectedGroups('exam-group')||null,
   };
   if(!payload.title){toast('El título es obligatorio','error');return;}
   let examId=editId;
@@ -2512,7 +2532,7 @@ function renderAdminExams(){
     const qc=allQuestions.filter(q=>q.exam_id===ex.id).length;
     const tName=ex.exam_type==='final'?'<span class="badge badge-warn">Final</span>':'<span class="badge badge-muted">Mensual</span>';
     const status=ex.is_published?'<span class="badge badge-green">Visible</span>':'<span class="badge badge-muted">Bloqueado</span>';
-    const grp=ex.target_group?`<span class="badge badge-blue">${ex.target_group}</span>`:'<span class="badge badge-muted">Todos</span>';
+    const grp=groupBadges(ex.target_group);
     return `<tr>
       <td class="fw-500">${esc(ex.title)} ${tName} ${status} ${grp}</td>
       <td class="text-muted">${mod?.title||'—'}</td>
