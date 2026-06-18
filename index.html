@@ -1174,6 +1174,19 @@ const SUPABASE_URL='https://kszjhkygtuanotznaqjb.supabase.co';
 const SUPABASE_KEY='sb_publishable_FzU-ZXAe7WybAaUyB6rcDQ_bUksmFNc';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
 const ANTHROPIC_KEY='TU_API_KEY_AQUI';
+// La IA pasa por un proxy serverless (api/chat) con verificación de sesión + rate limit.
+// Pon USE_AI_PROXY=true cuando hayas desplegado la función y la env var en Vercel.
+const USE_AI_PROXY=false;
+const AI_PROXY='/api/chat';
+async function askAI(maxTokens){
+  let token=null;try{const{data}=await sb.auth.getSession();token=data?.session?.access_token||null;}catch(e){}
+  const res=await fetch(AI_PROXY,{method:'POST',headers:{'Content-Type':'application/json',...(token?{'Authorization':'Bearer '+token}:{})},
+    body:JSON.stringify({system:(typeof SYSTEM_PROMPT!=='undefined'?SYSTEM_PROMPT:''),messages:chatHistory.slice(-12),max_tokens:maxTokens})});
+  const d=await res.json().catch(()=>({}));
+  if(res.status===429)return d.reply||'Has alcanzado el límite de mensajes por ahora. Intenta más tarde.';
+  if(!res.ok)return 'Error. Intenta de nuevo.';
+  return d.reply||'Error. Intenta de nuevo.';
+}
 const ADMIN_EMAIL='rubenJ@gmail.com';
 const ADMIN_PASS='ruben123';
 // ── Soporte (edita estos valores) ──
@@ -1256,7 +1269,7 @@ sb.auth.onAuthStateChange(async (event,session)=>{
   if(event==='PASSWORD_RECOVERY'&&session){
     const prof=await getProfile(session.user.id);
     currentUser={id:session.user.id,email:session.user.email,name:prof?.full_name||session.user.email,group:prof?.group_name||'',plan30:!!prof?.plan30_access};
-    isAdmin=false;
+    isAdmin=prof?.role==='admin';
     document.getElementById('login-err').style.display='none';
     document.getElementById('change-pass-modal').classList.remove('hidden');
   }
@@ -3064,15 +3077,8 @@ async function sendMsg(preset=null){
   updateSessionStats();showTyping();
   try{
     let reply;
-    if(ANTHROPIC_KEY==='TU_API_KEY_AQUI'){reply=getDemoReply(text);}
-    else{
-      const res=await fetch('https://api.anthropic.com/v1/messages',{
-        method:'POST',
-        headers:{'Content-Type':'application/json','x-api-key':ANTHROPIC_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-        body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:SYSTEM_PROMPT,messages:chatHistory.slice(-12)})
-      });
-      const d=await res.json();reply=d.content?.[0]?.text||'Error. Intenta de nuevo.';
-    }
+    if(USE_AI_PROXY){reply=await askAI(1000);}
+    else{reply=getDemoReply(text);}
     hideTyping();addMsg('ai',reply);
     chatHistory.push({role:'assistant',content:reply});
     sessionMsgs++;updateSessionStats();
@@ -3216,11 +3222,8 @@ async function voiceProcess(text){
   chatHistory.push({role:'user',content:text});
   let reply;
   try{
-    if(ANTHROPIC_KEY==='TU_API_KEY_AQUI'){reply=getDemoReply(text);}
-    else{
-      const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':ANTHROPIC_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:600,system:(typeof SYSTEM_PROMPT!=='undefined'?SYSTEM_PROMPT:''),messages:chatHistory.slice(-12)})});
-      const d=await res.json();reply=d.content?.[0]?.text||'Sorry, try again.';
-    }
+    if(USE_AI_PROXY){reply=await askAI(600);}
+    else{reply=getDemoReply(text);}
   }catch(e){reply='Sorry, there was a connection error.';}
   try{addMsg('ai',reply);}catch(e){}
   chatHistory.push({role:'assistant',content:reply});
