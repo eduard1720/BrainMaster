@@ -120,7 +120,9 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
 /* APP SHELL */
 #app{display:none;height:100vh;flex-direction:row;overflow:hidden;position:relative}
 /* SIDEBAR */
-.sidebar{width:236px;flex-shrink:0;height:100vh;background:#0c0c10;border-right:1px solid var(--border);display:flex;flex-direction:column;padding:18px 14px;overflow-y:auto;position:relative;z-index:1}
+.sidebar{width:236px;flex-shrink:0;height:100vh;background:#08080b;border-right:1px solid rgba(255,255,255,.09);box-shadow:1px 0 0 rgba(255,255,255,.04),10px 0 30px -14px rgba(0,0,0,.7);display:flex;flex-direction:column;padding:18px 14px;overflow-y:auto;position:relative;z-index:2}
+.sidebar-fx{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;display:block}
+.sidebar-logo,.nav-tabs,.sidebar-foot{position:relative;z-index:1}
 .sidebar-logo{display:flex;align-items:center;gap:11px;padding:6px 8px 18px}
 .sidebar-logo-mark{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#3a3a42,#17171c);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:600;font-size:17px;color:#fff;flex-shrink:0}
 .sidebar-logo-name{font-family:'Fraunces',serif;font-size:15.5px;color:#fff;letter-spacing:-.2px;line-height:1.1}
@@ -410,6 +412,9 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
 .table-hdr{padding:14px 18px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between}
 .table-hdr-title{font-size:13px;font-weight:600;color:var(--ink)}
 .group-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:16px 20px;min-width:160px}
+.group-card.clk{cursor:pointer;transition:border-color .15s,background .15s,transform .15s}
+.group-card.clk:hover{border-color:var(--border2);transform:translateY(-2px)}
+.group-card.sel{border-color:var(--accent);background:rgba(255,255,255,.06)}
 .group-card-name{font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:8px;display:flex;align-items:center;gap:6px}
 .group-dot{width:8px;height:8px;border-radius:50%}.group-card-count{font-size:22px;font-weight:600;letter-spacing:-.5px}.group-card-lbl{font-size:11px;color:var(--muted);margin-top:2px}
 /* ALUMNOS — tema oscuro */
@@ -433,6 +438,16 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
 .material-desc{font-size:11.5px;color:var(--muted);line-height:1.4}
 .material-meta{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
 .card-builder-row{display:flex;gap:8px;align-items:flex-start}
+/* MATERIALES — fila compacta dentro del módulo */
+.mat-mini-list{display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
+.mat-mini{display:flex;align-items:center;gap:12px;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r-sm);padding:10px 14px;cursor:pointer;transition:all .15s}
+.mat-mini:hover{border-color:var(--border2);background:rgba(255,255,255,.04)}
+.mat-mini-ic{width:34px;height:34px;border-radius:8px;background:rgba(255,255,255,.06);border:0.5px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.mat-mini-ic svg{width:17px;height:17px;stroke:#e8eaed;fill:none}
+.mat-mini-title{flex:1;font-size:13px;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mat-mini-chev{flex-shrink:0}
+.mat-flash{animation:matflash 1.6s ease}
+@keyframes matflash{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,0)}20%,60%{box-shadow:0 0 0 3px rgba(255,255,255,.3);border-color:var(--accent)}}
 /* SESIONES EN VIVO */
 .ses-card{display:flex;align-items:center;gap:16px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin-bottom:12px;transition:border-color .15s}
 .ses-card:hover{border-color:var(--border2)}
@@ -627,6 +642,7 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
     <canvas id="app-particles" class="bg-particles"></canvas>
   </div>
   <aside class="sidebar">
+    <canvas class="sidebar-fx" id="sidebar-fx" aria-hidden="true"></canvas>
     <div class="sidebar-logo">
       <div class="sidebar-logo-mark">b</div>
       <div class="sidebar-logo-name">Brain Master English</div>
@@ -636,6 +652,7 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
       <div class="nav-tab" data-view="assistant" onclick="showView('assistant')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>Asistente IA</div>
       <div class="nav-tab" data-view="progress" onclick="showView('progress')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>Mi Progreso</div>
       <div class="nav-tab" data-view="materials" onclick="showView('materials')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 016.5 17H20M4 19.5A2.5 2.5 0 006.5 22H20v-5M4 19.5V5a2 2 0 012-2h14v14"/></svg>Materiales</div>
+      <div class="nav-tab" data-view="exams" onclick="showView('exams')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>Exámenes</div>
       <div class="nav-tab" data-view="sessions" onclick="showView('sessions')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Sesiones en vivo</div>
       <div class="nav-tab" data-view="support" onclick="showView('support')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18.364 5.636a9 9 0 11-12.728 0M12 2v8"/></svg>Soporte</div>
       <div class="nav-tab hidden" data-view="dashboard" onclick="showView('dashboard')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</div>
@@ -670,6 +687,12 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
       </div>
     </div>
 
+    <!-- EXÁMENES (alumno) -->
+    <div id="view-exams" class="view">
+      <div class="page-hdr"><div class="page-title">Exámenes</div><div class="page-sub">Rinde los exámenes de tus módulos desbloqueados</div></div>
+      <div id="exams-list-content"></div>
+    </div>
+
     <!-- MODULE DETAIL -->
     <div id="view-module-detail" class="view">
       <div class="module-detail-layout">
@@ -681,7 +704,7 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
           <div class="module-detail-meta" id="detail-meta"></div>
           <div class="lessons-section-title"><span id="lessons-count-label">Lecciones</span></div>
           <div class="lessons-grid" id="lessons-grid"></div>
-          <div id="exams-section"></div>
+          <div id="materials-section"></div>
         </div>
         <div class="module-detail-sidebar">
           <div class="sidebar-hdr">Contenido del módulo</div>
@@ -714,7 +737,7 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
     <div id="view-exam" class="view">
       <div class="exam-layout">
         <div class="exam-main">
-          <button class="exam-back" id="exam-back-btn"><svg viewBox="0 0 24 24"><path d="M19 12H5M5 12l7 7M5 12l7-7"/></svg>Volver al módulo</button>
+          <button class="exam-back" id="exam-back-btn"><svg viewBox="0 0 24 24"><path d="M19 12H5M5 12l7 7M5 12l7-7"/></svg>Volver a Exámenes</button>
           <div class="exam-title-big" id="exam-title-big"></div>
           <div class="exam-sub-info" id="exam-sub-info"></div>
           <div id="exam-questions-container"></div>
@@ -807,7 +830,7 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
         <div><div class="page-title">Alumnos</div><div class="page-sub">Gestiona acceso y grupos</div></div>
         <div class="flex gap8 ai-center">
           <input class="input" id="search-student" placeholder="Buscar alumno..." style="width:200px" oninput="filterStudents(this.value)">
-          <select class="input" id="filter-group" style="width:150px" onchange="filterStudents(document.getElementById('search-student').value)"></select>
+          <select class="input" id="filter-group" style="width:150px" onchange="openStudentGroup(this.value||null)"></select>
         </div>
       </div>
       <div id="group-cards" class="flex gap12" style="margin-bottom:20px;flex-wrap:wrap"></div>
@@ -947,12 +970,17 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
         <div class="field f1"><label class="label">Título</label><input class="input" id="mat-title" placeholder="Ej: Guía Present Simple"></div>
         <div class="field" style="width:160px"><label class="label">Módulo</label><select class="input" id="mat-module"></select></div>
       </div>
+      <div class="field"><label class="label">Dirigido a</label><select class="input" id="mat-group"></select></div>
       <div class="field"><label class="label">Descripción (opcional)</label><input class="input" id="mat-desc" placeholder="Breve descripción"></div>
       <div class="field"><label class="label">Tipo de material</label>
         <select class="input" id="mat-kind" onchange="toggleMaterialKind()">
           <option value="file">Documento / PDF</option>
           <option value="flashcards">Notas / Flashcards</option>
+          <option value="link">Enlace</option>
         </select>
+      </div>
+      <div id="mat-link-section" style="display:none">
+        <div class="field"><label class="label">URL del enlace</label><input class="input" id="mat-link-url" placeholder="https://..."></div>
       </div>
       <div id="mat-file-section">
         <div class="field"><label class="label">Archivo</label><input class="input" type="file" id="mat-file" accept=".pdf,.doc,.docx,.ppt,.pptx,.png,.jpg,.jpeg,.xls,.xlsx,.txt"></div>
@@ -1064,6 +1092,7 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
         <div class="field" style="max-width:240px"><label class="label">Tipo de examen</label><select class="input" id="exam-type"><option value="monthly">Mensual (1 módulo)</option><option value="final">Final (cada 3 módulos)</option></select></div>
         <div class="field" style="max-width:200px"><label class="label">Nota mínima para aprobar (%)</label><input class="input" id="exam-pass-score" type="number" value="70" min="1" max="100"></div>
       </div>
+      <div class="field"><label class="label">Dirigido a</label><select class="input" id="exam-group"></select></div>
       <input type="hidden" id="exam-editing-id">
       <div style="border-top:0.5px solid var(--border);padding-top:16px">
         <div class="flex jc-between ai-center" style="margin-bottom:12px"><span class="fs-13 fw-600" style="color:var(--ink2)">Preguntas</span><button class="btn btn-ghost btn-sm" onclick="addQuestionRow()">+ Añadir pregunta</button></div>
@@ -1158,6 +1187,11 @@ const SUPPORT_HOURS=[
 // ── Grupos: 1 al 50, formato "Grupo N vip" ──
 const GROUPS=Array.from({length:50},(_,i)=>`Grupo ${i+1} vip`);
 function groupOpts(sel){return GROUPS.map(g=>`<option value="${g}"${g===sel?' selected':''}>${g}</option>`).join('');}
+// Select "Dirigido a": Todos + grupos. value '' = todos los del módulo
+function fillTargetGroup(id,sel){const e=document.getElementById(id);if(e)e.innerHTML=`<option value="">Todos los grupos del módulo</option>`+groupOpts(sel||'');}
+// ¿el contenido (material/examen) es visible para el alumno actual según su grupo?
+// target_group vacío/nulo = todos los del módulo; si tiene grupo, solo ese grupo lo ve
+function targetGroupOk(tg){return !tg||(currentUser&&currentUser.group===tg);}
 function populateGroupSelects(){
   const fg=document.getElementById('filter-group');if(fg)fg.innerHTML=`<option value="">Todos los grupos</option>`+groupOpts()+`<option value="Sin grupo">Sin grupo</option>`;
   const ng=document.getElementById('new-group');if(ng)ng.innerHTML=`<option value="">Sin grupo</option>`+groupOpts();
@@ -1177,6 +1211,8 @@ let allExtra=[];let allExtraLinks=[];
 let allAccessCache=[],allResultsCache=[];
 let userAccess=[],allStudentsCache=[];
 let completedLessons=new Set(); // IDs de lecciones vistas por el estudiante
+// Escape HTML para evitar XSS al interpolar datos de usuario en innerHTML
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);}
 let currentModuleId=null,currentExamId=null,examAnswers={};
 let chatHistory=[],vocabItems=[];
 let sessionMsgs=0,sessionWords=0,sessionStart=null,sessionTimer=null;
@@ -1239,7 +1275,7 @@ async function doLogin(){
   if(error){errEl.style.display='block';return;}
   const profile=await getProfile(data.user.id);
   currentUser={id:data.user.id,email:data.user.email,name:profile?.full_name||(email.split('@')[0].charAt(0).toUpperCase()+email.split('@')[0].slice(1)),group:profile?.group_name||'',plan30:!!profile?.plan30_access};
-  isAdmin=false;
+  isAdmin=profile?.role==='admin';
   try{sb.from('profiles').update({last_access:new Date().toISOString()}).eq('id',data.user.id).then(()=>{},()=>{});}catch(e){}
   if(profile?.must_change_password){
     document.getElementById('login-screen').style.display='none';
@@ -1261,15 +1297,69 @@ function resetNavTabs(){
   document.getElementById('admin-badge').classList.add('hidden');
 }
 
+// ── Fondo del sidebar: estrellas + estrellas fugaces (monocromático) ──
+let _sidefx;
+function initSidebarFx(){
+  const cv=document.getElementById('sidebar-fx');const host=document.querySelector('.sidebar');
+  if(!cv||!host)return;
+  if(_sidefx)cancelAnimationFrame(_sidefx);
+  const ctx=cv.getContext('2d');let W,H,dpr,stars,shoots,nextShoot;
+  function size(){
+    dpr=Math.min(window.devicePixelRatio||1,2);
+    W=host.clientWidth;H=host.clientHeight;
+    cv.width=W*dpr;cv.height=H*dpr;cv.style.width=W+'px';cv.style.height=H+'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    const n=Math.round(W*H/5200);
+    stars=[];for(let i=0;i<n;i++)stars.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.1+.3,a:Math.random()*.5+.15,tw:Math.random()*Math.PI*2,ts:.6+Math.random()*1.4});
+  }
+  shoots=[];nextShoot=0;
+  function spawn(t){
+    const fromLeft=Math.random()<.5;
+    const x=fromLeft?-20:Math.random()*W*.6;
+    const y=Math.random()*H*.7;
+    const ang=(Math.PI/4)+(Math.random()*.3-.15);
+    const sp=2.2+Math.random()*1.8;
+    shoots.push({x,y,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp,len:60+Math.random()*60,life:0,max:90+Math.random()*40});
+    nextShoot=t+1400+Math.random()*2600;
+  }
+  size();
+  function frame(t){
+    ctx.clearRect(0,0,W,H);
+    // estrellas fijas con titileo
+    for(const s of stars){
+      const a=s.a*(.55+.45*Math.sin(t*.001*s.ts+s.tw));
+      ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,7);
+      ctx.fillStyle='rgba(255,255,255,'+a.toFixed(3)+')';ctx.fill();
+    }
+    // estrellas fugaces
+    if(t>nextShoot)spawn(t);
+    for(let i=shoots.length-1;i>=0;i--){
+      const sh=shoots[i];sh.x+=sh.vx;sh.y+=sh.vy;sh.life++;
+      const k=sh.life/sh.max;const fade=k<.15?k/.15:(1-k)/.85;
+      const tx=sh.x-sh.vx/Math.hypot(sh.vx,sh.vy)*sh.len;
+      const ty=sh.y-sh.vy/Math.hypot(sh.vx,sh.vy)*sh.len;
+      const g=ctx.createLinearGradient(sh.x,sh.y,tx,ty);
+      g.addColorStop(0,'rgba(255,255,255,'+(.85*fade).toFixed(3)+')');
+      g.addColorStop(1,'rgba(255,255,255,0)');
+      ctx.strokeStyle=g;ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(sh.x,sh.y);ctx.lineTo(tx,ty);ctx.stroke();
+      ctx.beginPath();ctx.arc(sh.x,sh.y,1.3,0,7);ctx.fillStyle='rgba(255,255,255,'+fade.toFixed(3)+')';ctx.fill();
+      if(sh.life>=sh.max||sh.x>W+40||sh.y>H+40)shoots.splice(i,1);
+    }
+    _sidefx=requestAnimationFrame(frame);
+  }
+  window.removeEventListener('resize',size);window.addEventListener('resize',size);
+  _sidefx=requestAnimationFrame(frame);
+}
 async function launchApp(){
   document.getElementById('login-screen').style.display='none';
   document.getElementById('app').style.display='flex';
   document.getElementById('nav-av').textContent=(currentUser.name||'??').substring(0,2).toUpperCase();
   document.getElementById('nav-name').textContent=currentUser.name||'---';
   populateGroupSelects();
+  initSidebarFx();
   resetNavTabs();
   if(isAdmin){
-    ['classes','assistant','progress','materials','sessions','support'].forEach(v=>{const el=document.querySelector(`.nav-tab[data-view="${v}"]`);if(el)el.classList.add('hidden');});
+    ['classes','assistant','progress','materials','exams','sessions','support'].forEach(v=>{const el=document.querySelector(`.nav-tab[data-view="${v}"]`);if(el)el.classList.add('hidden');});
     ['dashboard','admin-modules','admin-exams','admin-students','admin-add','admin-materials','admin-sessions'].forEach(v=>{const el=document.querySelector(`.nav-tab[data-view="${v}"]`);if(el)el.classList.remove('hidden');});
     document.getElementById('admin-badge').classList.remove('hidden');
   }
@@ -1329,6 +1419,7 @@ function showView(name){
   if(name==='admin-students'){loadAdminData();renderGroupsView();}
   if(name==='admin-materials'){loadMaterials().then(renderAdminMaterials);}
   if(name==='materials'){loadMaterials().then(renderStudentMaterials);}
+  if(name==='exams'){renderStudentExams();}
   if(name==='admin-sessions'){loadSessions().then(renderAdminSessions);}
   if(name==='sessions'){loadSessions().then(renderStudentSessions);}
   if(name==='support'){renderSupport();}
@@ -1402,13 +1493,13 @@ function renderAdminMaterials(){
   document.getElementById('materials-count-lbl').textContent=allMaterials.length+' materiales';
   if(!allMaterials.length){tb.innerHTML='<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--muted)">No hay materiales. Crea el primero.</td></tr>';return;}
   tb.innerHTML=allMaterials.map(m=>{
-    const isFc=m.kind==='flashcards';
-    const tipo=isFc?'<span class="badge badge-accent">Notas</span>':'<span class="badge badge-muted">'+((m.file_type||'archivo').toUpperCase())+'</span>';
-    const cont=isFc?((m.cards?m.cards.length:0)+' notas'):(m.file_url?`<a href="${m.file_url}" target="_blank" class="text-accent">Ver archivo</a>`:'—');
+    const isFc=m.kind==='flashcards';const isLink=m.kind==='link';
+    const tipo=isFc?'<span class="badge badge-accent">Notas</span>':isLink?'<span class="badge badge-blue">Enlace</span>':'<span class="badge badge-muted">'+((m.file_type||'archivo').toUpperCase())+'</span>';
+    const cont=isFc?((m.cards?m.cards.length:0)+' notas'):(m.file_url?`<a href="${esc(m.file_url)}" target="_blank" class="text-accent">${isLink?'Abrir enlace':'Ver archivo'}</a>`:'—');
     return `<tr>
-      <td><span class="fw-500">${m.title}</span>${m.description?`<div class="fs-11 text-muted">${m.description}</div>`:''}</td>
+      <td><span class="fw-500">${esc(m.title)}</span>${m.description?`<div class="fs-11 text-muted">${esc(m.description)}</div>`:''}</td>
       <td>${tipo}</td>
-      <td class="fs-12 text-muted">${moduleName(m.module_id)}</td>
+      <td class="fs-12 text-muted">${moduleName(m.module_id)}${m.target_group?`<div><span class="badge badge-blue" style="margin-top:4px">${m.target_group}</span></div>`:''}</td>
       <td class="fs-12 text-muted">${cont}</td>
       <td><div class="col-actions"><button class="btn btn-ghost btn-xs" onclick="editMaterial(${m.id})">Editar</button><button class="btn btn-danger btn-xs" onclick="deleteMaterial(${m.id})">Eliminar</button></div></td>
     </tr>`;
@@ -1418,43 +1509,96 @@ function renderAdminMaterials(){
 function renderStudentMaterials(){
   const cont=document.getElementById('materials-student-content');if(!cont)return;
   const unlocked=new Set(userAccess.filter(a=>a.unlocked).map(a=>a.module_id));
-  const visible=allMaterials.filter(m=>unlocked.has(m.module_id));
+  const visible=allMaterials.filter(m=>unlocked.has(m.module_id)&&targetGroupOk(m.target_group));
   if(!visible.length){cont.innerHTML='<div class="card"><p class="fs-13 text-muted">Aún no hay materiales disponibles para tus módulos.</p></div>';return;}
   let html='';
   allModules.forEach(mod=>{
     const mats=visible.filter(m=>m.module_id===mod.id);
     if(!mats.length)return;
-    html+=`<div class="mat-group"><div class="mat-group-title">${mod.title}</div><div class="materials-grid">`;
-    html+=mats.map(m=>{
-      const isFc=m.kind==='flashcards';
-      const ic=isFc?'<path d="M4 7a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2z"/><path d="M8 3h10a2 2 0 012 2v10"/>':'<path d="M14 2H7a2 2 0 00-2 2v16a2 2 0 002 2h10a2 2 0 002-2V7l-5-5z"/><path d="M14 2v5h5M9 13h6m-6 4h6"/>';
-      const action=isFc?`<button class="btn btn-primary btn-sm w100" onclick="openFlashcards(${m.id})">Ver notas</button>`:`<a class="btn btn-primary btn-sm w100" href="${m.file_url}" target="_blank" style="justify-content:center">Abrir documento</a>`;
-      return `<div class="material-card">
-        <div class="material-ic"><svg viewBox="0 0 24 24" stroke-width="1.5" fill="none">${ic}</svg></div>
-        <div><div class="material-title">${m.title}</div>${m.description?`<div class="material-desc">${m.description}</div>`:''}</div>
-        <div class="material-meta">${isFc?((m.cards?m.cards.length:0)+' notas'):(m.file_type||'documento')}</div>
-        ${action}
-      </div>`;
-    }).join('');
+    html+=`<div class="mat-group"><div class="mat-group-title">${esc(mod.title)}</div><div class="materials-grid">`;
+    html+=mats.map(materialCardHtml).join('');
     html+='</div></div>';
   });
   cont.innerHTML=html;
 }
+function matIconPath(kind){
+  if(kind==='flashcards')return '<path d="M4 7a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2z"/><path d="M8 3h10a2 2 0 012 2v10"/>';
+  if(kind==='link')return '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>';
+  return '<path d="M14 2H7a2 2 0 00-2 2v16a2 2 0 002 2h10a2 2 0 002-2V7l-5-5z"/><path d="M14 2v5h5M9 13h6m-6 4h6"/>';
+}
+function materialCardHtml(m){
+  const ic=matIconPath(m.kind);
+  let action,meta;
+  if(m.kind==='flashcards'){action=`<button class="btn btn-primary btn-sm w100" onclick="openFlashcards(${m.id})">Ver notas</button>`;meta=(m.cards?m.cards.length:0)+' notas';}
+  else if(m.kind==='link'){action=`<a class="btn btn-primary btn-sm w100" href="${esc(m.file_url)}" target="_blank" rel="noopener" style="justify-content:center">Abrir enlace</a>`;meta='Enlace';}
+  else{action=`<a class="btn btn-primary btn-sm w100" href="${esc(m.file_url)}" target="_blank" style="justify-content:center">Abrir documento</a>`;meta=esc(m.file_type||'documento');}
+  return `<div class="material-card" data-mat-id="${m.id}">
+    <div class="material-ic"><svg viewBox="0 0 24 24" stroke-width="1.5" fill="none">${ic}</svg></div>
+    <div><div class="material-title">${esc(m.title)}</div>${m.description?`<div class="material-desc">${esc(m.description)}</div>`:''}</div>
+    <div class="material-meta">${meta}</div>
+    ${action}
+  </div>`;
+}
+function renderModuleMaterials(moduleId){
+  const sec=document.getElementById('materials-section');if(!sec)return;
+  const mats=allMaterials.filter(m=>m.module_id===moduleId&&(isAdmin||targetGroupOk(m.target_group)));
+  if(!mats.length){sec.innerHTML='';return;}
+  sec.innerHTML=`<div class="lessons-section-title" style="margin-top:8px"><span>Materiales (${mats.length})</span></div>`
+    +`<div class="mat-mini-list">${mats.map(m=>{
+      const ic=matIconPath(m.kind);
+      const tag=isAdmin&&m.target_group?`<span class="badge badge-blue" style="margin-right:6px">${m.target_group}</span>`:'';
+      return `<div class="mat-mini" onclick="goToMaterial(${m.id})">
+        <div class="mat-mini-ic"><svg viewBox="0 0 24 24" stroke-width="1.5" fill="none">${ic}</svg></div>
+        <div class="mat-mini-title">${esc(m.title)}</div>
+        ${tag}
+        <svg class="mat-mini-chev" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5" width="14" height="14"><path d="M9 18l6-6-6-6"/></svg>
+      </div>`;
+    }).join('')}</div>`;
+}
+function renderStudentExams(){
+  const cont=document.getElementById('exams-list-content');if(!cont)return;
+  const unlocked=new Set(userAccess.filter(a=>a.unlocked).map(a=>a.module_id));
+  const visible=allExams.filter(e=>e.is_published&&unlocked.has(e.module_id)&&targetGroupOk(e.target_group));
+  if(!visible.length){cont.innerHTML='<div class="card"><p class="fs-13 text-muted">Aún no tienes exámenes disponibles. Se habilitan a medida que avanzas en los módulos.</p></div>';return;}
+  const typeLabel={monthly:'Examen mensual',final:'Examen final'};
+  let html='';
+  allModules.forEach(mod=>{
+    const exs=visible.filter(e=>e.module_id===mod.id);
+    if(!exs.length)return;
+    html+=`<div class="mat-group"><div class="mat-group-title">${esc(mod.title)}</div>`;
+    html+=exs.map(ex=>`<div class="exam-row" onclick="openExam(${ex.id})">
+      <div class="exam-icon"><svg viewBox="0 0 24 24" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg></div>
+      <div class="exam-info"><div class="exam-title">${esc(ex.title)}</div><div class="exam-sub">${typeLabel[ex.exam_type]||'Examen'} · Mínimo ${ex.pass_score||70}% para aprobar</div></div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5" width="16" height="16"><path d="M9 18l6-6-6-6"/></svg>
+    </div>`).join('');
+    html+='</div>';
+  });
+  cont.innerHTML=html;
+}
+function goToMaterial(id){
+  showView('materials');
+  setTimeout(()=>{
+    const el=document.querySelector(`#view-materials [data-mat-id="${id}"]`);
+    if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.classList.add('mat-flash');setTimeout(()=>el.classList.remove('mat-flash'),1600);}
+  },400);
+}
 
 function populateMatModules(sel){
   const s=document.getElementById('mat-module');
-  s.innerHTML=allModules.map(m=>`<option value="${m.id}">${m.title}</option>`).join('');
+  s.innerHTML=allModules.map(m=>`<option value="${m.id}">${esc(m.title)}</option>`).join('');
   if(sel)s.value=sel;
 }
-function openMaterialModal(mat=null){
+function openMaterialModal(mat=null,presetModuleId=null){
   if(!allModules.length){toast('Primero crea un módulo','error');return;}
   document.getElementById('material-modal-title').textContent=mat?'Editar material':'Nuevo material';
   document.getElementById('mat-editing-id').value=mat?.id||'';
   document.getElementById('mat-title').value=mat?.title||'';
   document.getElementById('mat-desc').value=mat?.description||'';
   document.getElementById('mat-kind').value=mat?.kind||'file';
-  populateMatModules(mat?.module_id);
+  populateMatModules(mat?.module_id||presetModuleId);
+  fillTargetGroup('mat-group',mat?.target_group);
   document.getElementById('mat-file').value='';
+  document.getElementById('mat-link-url').value=(mat?.kind==='link'?mat?.file_url:'')||'';
   const cur=document.getElementById('mat-file-current');
   cur.textContent=mat?.file_name?('Archivo actual: '+mat.file_name):'';
   cur.dataset.url=mat?.file_url||'';cur.dataset.name=mat?.file_name||'';cur.dataset.ftype=mat?.file_type||'';
@@ -1471,6 +1615,7 @@ function toggleMaterialKind(){
   const k=document.getElementById('mat-kind').value;
   document.getElementById('mat-file-section').style.display=k==='file'?'block':'none';
   document.getElementById('mat-cards-section').style.display=k==='flashcards'?'block':'none';
+  document.getElementById('mat-link-section').style.display=k==='link'?'block':'none';
 }
 function addCardRow(card=null){
   const cb=document.getElementById('cards-builder');
@@ -1488,12 +1633,17 @@ async function saveMaterial(){
   if(!title){toast('El título es obligatorio','error');return;}
   if(!module_id){toast('Selecciona un módulo','error');return;}
   const btn=document.getElementById('mat-save-btn');const st=document.getElementById('mat-status');
-  const payload={title,description:document.getElementById('mat-desc').value.trim(),module_id,kind,order_index:allMaterials.length+1};
+  const payload={title,description:document.getElementById('mat-desc').value.trim(),module_id,kind,target_group:document.getElementById('mat-group').value||null,order_index:allMaterials.length+1};
   if(kind==='flashcards'){
     const rows=document.querySelectorAll('#cards-builder .card-builder-row');
     const cards=[];rows.forEach(r=>{const t=r.querySelector('textarea').value.trim();if(t)cards.push({text:t});});
     if(!cards.length){toast('Agrega al menos una nota','error');return;}
     payload.cards=cards;payload.file_url=null;payload.file_name=null;payload.file_type=null;
+  }else if(kind==='link'){
+    let url=document.getElementById('mat-link-url').value.trim();
+    if(!url){toast('Escribe la URL del enlace','error');return;}
+    if(!/^https?:\/\//i.test(url))url='https://'+url;
+    payload.file_url=url;payload.file_name=null;payload.file_type='link';payload.cards=null;
   }else{
     const file=document.getElementById('mat-file').files[0];
     const cur=document.getElementById('mat-file-current');
@@ -1515,12 +1665,12 @@ async function saveMaterial(){
   btn.disabled=false;st.textContent='';
   if(err){toast('Error: '+err.message,'error');return;}
   toast(id?'Material actualizado':'Material creado','success');
-  closeMaterialModal();await loadMaterials();renderAdminMaterials();
+  closeMaterialModal();await loadMaterials();renderAdminMaterials();if(currentModuleId)renderModuleMaterials(currentModuleId);
 }
 async function deleteMaterial(id){
   if(!confirm('¿Eliminar este material?'))return;
   await sb.from('materials').delete().eq('id',id);
-  toast('Material eliminado','success');await loadMaterials();renderAdminMaterials();
+  toast('Material eliminado','success');await loadMaterials();renderAdminMaterials();if(currentModuleId)renderModuleMaterials(currentModuleId);
 }
 function openFlashcards(id){
   const m=allMaterials.find(x=>x.id===id);if(!m||!m.cards||!m.cards.length){toast('Sin tarjetas','error');return;}
@@ -1564,7 +1714,7 @@ function renderAdminSessions(){
     const d=sesWhen(s);
     const aud=s.audience_type==='all'||!s.audience_type?'<span class="badge badge-muted">Todos</span>':`<span class="badge badge-accent">${sesAudience(s)}</span>`;
     return `<tr>
-      <td><span class="fw-500">${s.title}</span>${s.description?`<div class="fs-11 text-muted">${s.description}</div>`:''}</td>
+      <td><span class="fw-500">${esc(s.title)}</span>${s.description?`<div class="fs-11 text-muted">${esc(s.description)}</div>`:''}</td>
       <td class="fs-12 text-muted">${fmtSesFull(d)}</td>
       <td>${aud}</td>
       <td class="fs-12">${s.join_url?`<a href="${s.join_url}" target="_blank" class="text-accent">Enlace</a>`:'—'}</td>
@@ -1594,14 +1744,14 @@ function renderStudentSessions(){
     const btn=s.join_url?`<a class="btn ${live?'btn-primary':'btn-ghost'} btn-sm" href="${s.join_url}" target="_blank" style="justify-content:center">${live?'Unirse ahora':'Unirse'}</a>`:'';
     return `<div class="ses-card">
       <div class="ses-date"><div class="d">${dd}</div><div class="m">${mm}</div></div>
-      <div class="ses-info"><div class="ses-title">${s.title} ${live?'<span class="ses-live">En vivo</span>':''}</div>${s.description?`<div class="fs-12 text-muted" style="margin-top:2px">${s.description}</div>`:''}<div class="ses-meta">${meta.map(m=>`<span>${m}</span>`).join('')}</div></div>
+      <div class="ses-info"><div class="ses-title">${esc(s.title)} ${live?'<span class="ses-live">En vivo</span>':''}</div>${s.description?`<div class="fs-12 text-muted" style="margin-top:2px">${esc(s.description)}</div>`:''}<div class="ses-meta">${meta.map(m=>`<span>${esc(m)}</span>`).join('')}</div></div>
       ${btn}
     </div>`;
   }).join('');
 }
 function populateSesModules(sel){
   const s=document.getElementById('ses-module');
-  s.innerHTML=allModules.map(m=>`<option value="${m.id}">${m.title}</option>`).join('');
+  s.innerHTML=allModules.map(m=>`<option value="${m.id}">${esc(m.title)}</option>`).join('');
   if(sel)s.value=sel;
 }
 function toggleSessionAudience(){
@@ -1761,8 +1911,8 @@ function renderModulesGrid(){
       </div>
       <div class="module-body">
         <div class="module-num">Módulo ${m.order_index||i+1}</div>
-        <div class="module-title">${m.title}</div>
-        ${m.description?`<div class="module-desc">${m.description}</div>`:''}
+        <div class="module-title">${esc(m.title)}</div>
+        ${m.description?`<div class="module-desc">${esc(m.description)}</div>`:''}
         <div class="module-footer">
           <div class="prog-wrap"><div class="prog-fill" style="width:${prog}%"></div></div>
           <div class="prog-pct">${prog}%</div>
@@ -1782,7 +1932,7 @@ async function openModuleDetail(moduleId){
     const{data}=await sb.from('lessons').select('*').eq('module_id',moduleId).order('order_index');
     allLessons=[...allLessons.filter(l=>l.module_id!==moduleId),...(data||[])];
   }
-  const{data:moduleExams}=await sb.from('exams').select('*').eq('module_id',moduleId);
+  if(!allMaterials.length)await loadMaterials();
   const lessons=allLessons.filter(l=>l.module_id===moduleId);
   const lv={beginner:'Básico',intermediate:'Intermedio',advanced:'Avanzado'};
   const hero=document.getElementById('detail-hero');
@@ -1805,8 +1955,8 @@ async function openModuleDetail(moduleId){
       <div class="lesson-thumb">${thumbHtml}<div class="lesson-play-overlay"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>
       <div class="lesson-info">
         <div class="lesson-num">Lección ${l.order_index||i+1}</div>
-        <div class="lesson-title">${l.title}</div>
-        ${l.description?`<div class="lesson-desc">${l.description}</div>`:''}
+        <div class="lesson-title">${esc(l.title)}</div>
+        ${l.description?`<div class="lesson-desc">${esc(l.description)}</div>`:''}
       </div>
       <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
         ${l.duration?`<span class="lesson-dur">${l.duration}</span>`:''}
@@ -1814,22 +1964,11 @@ async function openModuleDetail(moduleId){
       </div>
     </div>`;
   }).join(''):'<p class="fs-12 text-muted">Este módulo aún no tiene lecciones.</p>';
-  const examsSection=document.getElementById('exams-section');
-  const visExams=isAdmin?(moduleExams||[]):(moduleExams||[]).filter(e=>e.is_published);
-  if(visExams.length){
-    const qMap={};
-    allQuestions.forEach(q=>{if(!qMap[q.exam_id])qMap[q.exam_id]=0;qMap[q.exam_id]++;});
-    examsSection.innerHTML=`<div class="lessons-section-title" style="margin-top:8px"><span>Exámenes (${visExams.length})</span></div>`
-      +visExams.map(ex=>`<div class="exam-row" onclick="openExam(${ex.id})">${isAdmin&&!ex.is_published?'<span class="badge badge-muted" style="margin-right:8px">Bloqueado</span>':''}
-        <div class="exam-icon"><svg viewBox="0 0 24 24" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg></div>
-        <div class="exam-info"><div class="exam-title">${ex.title}</div><div class="exam-sub">${qMap[ex.id]||0} preguntas · Mínimo ${ex.pass_score||70}% para aprobar</div></div>
-        <svg viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5" width="16" height="16"><path d="M9 18l6-6-6-6"/></svg>
-      </div>`).join('');
-  }else{examsSection.innerHTML='';}
+  renderModuleMaterials(moduleId);
   document.getElementById('module-sidebar-list').innerHTML=lessons.map((l,i)=>`
     <div class="sidebar-item" onclick="openLesson(${l.id})">
       <div class="sidebar-item-num">Lección ${l.order_index||i+1}</div>
-      <div class="sidebar-item-title">${l.title}</div>
+      <div class="sidebar-item-title">${esc(l.title)}</div>
     </div>`).join('')||'<div style="padding:14px;font-size:12px;color:var(--muted)">Sin lecciones aún</div>';
   document.getElementById('player-back-btn').onclick=()=>showView('module-detail');
   showView('module-detail');
@@ -1943,7 +2082,7 @@ function renderExamBlocked(exam,prev){
   document.getElementById('exam-sub-info').textContent='Examen ya realizado';
   document.getElementById('exam-questions-container').innerHTML='';
   document.getElementById('exam-submit-area').innerHTML='';
-  document.getElementById('exam-back-btn').onclick=()=>showView('module-detail');
+  document.getElementById('exam-back-btn').onclick=()=>showView('exams');
   const passed=prev.passed;
   document.getElementById('exam-results-container').innerHTML=`
     <div class="exam-results-card">
@@ -1953,7 +2092,7 @@ function renderExamBlocked(exam,prev){
       <div style="font-size:13px;color:var(--muted);margin-bottom:20px">Nota mínima requerida: ${exam.pass_score||70}%</div>
       ${passed?'':`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r-sm);padding:14px 16px;font-size:13px;color:var(--ink2);text-align:center;margin-bottom:16px;line-height:1.6">Para volver a rendir este examen debes solicitar una <b>segunda instancia</b> al administrador.</div>
       <div style="display:flex;justify-content:center;margin-bottom:6px"><a class="btn btn-wa" href="${examWaLink(exam,prev.score)}" target="_blank" rel="noopener">Solicitar por WhatsApp</a></div>`}
-      <div style="display:flex;gap:10px;justify-content:center;margin-top:12px"><button class="btn btn-ghost" onclick="showView('module-detail')">Volver al módulo</button></div>
+      <div style="display:flex;gap:10px;justify-content:center;margin-top:12px"><button class="btn btn-ghost" onclick="showView('exams')">Volver a Exámenes</button></div>
     </div>`;
   showView('exam');
 }
@@ -1961,6 +2100,7 @@ async function openExam(examId){
   currentExamId=examId;examAnswers={};
   const exam=allExams.find(e=>e.id===examId);if(!exam)return;
   if(!isAdmin&&!exam.is_published){toast('Este examen aún no está disponible','error');return;}
+  if(!isAdmin&&!targetGroupOk(exam.target_group)){toast('Este examen no está dirigido a tu grupo','error');return;}
   if(currentUser.id!=='admin-local'){
     try{
       const{data:prevArr}=await sb.from('exam_results').select('score,passed').eq('exam_id',examId).eq('student_id',currentUser.id).limit(1);
@@ -1980,7 +2120,7 @@ async function openExam(examId){
   document.getElementById('exam-title-big').textContent=exam.title;
   document.getElementById('exam-sub-info').textContent=`${typeLabel[exam.exam_type]||'Examen'} · ${questions.length} pregunta${questions.length!==1?'s':''} · Mínimo ${exam.pass_score||70}% para aprobar`;
   document.getElementById('exam-results-container').innerHTML='';
-  document.getElementById('exam-back-btn').onclick=()=>showView('module-detail');
+  document.getElementById('exam-back-btn').onclick=()=>showView('exams');
   let html='',lastSec=null,num=0;
   questions.forEach(q=>{
     const sec=q.section||'grammar';
@@ -1994,11 +2134,11 @@ async function openExam(examId){
 function renderExamQuestion(q,num){
   const at=q.answer_type||'multiple';
   const letters=['A','B','C','D'];
-  const audio=q.audio_url?`<audio class="exam-audio" controls preload="none" src="${q.audio_url}"></audio>`:'';
-  const ctx=q.context?`<div class="exam-context">${(''+q.context).replace(/</g,'&lt;').replace(/\n/g,'<br>')}</div>`:'';
+  const audio=q.audio_url?`<audio class="exam-audio" controls preload="none" src="${esc(q.audio_url)}"></audio>`:'';
+  const ctx=q.context?`<div class="exam-context">${esc(q.context).replace(/\n/g,'<br>')}</div>`:'';
   let ans='';
   if(at==='multiple'){
-    ans=`<div class="answer-options">${[q.option_a,q.option_b,q.option_c,q.option_d].filter(Boolean).map((opt,oi)=>`<div class="answer-opt" data-val="${(''+opt).replace(/"/g,'&quot;')}" onclick="selectOpt(${q.id},this)"><span class="answer-letter">${letters[oi]}</span><span>${opt}</span></div>`).join('')}</div>`;
+    ans=`<div class="answer-options">${[q.option_a,q.option_b,q.option_c,q.option_d].filter(Boolean).map((opt,oi)=>`<div class="answer-opt" data-val="${esc(opt)}" onclick="selectOpt(${q.id},this)"><span class="answer-letter">${letters[oi]}</span><span>${esc(opt)}</span></div>`).join('')}</div>`;
   }else if(at==='truefalse'){
     ans=`<div class="answer-options">${['Verdadero','Falso'].map(v=>`<div class="answer-opt" data-val="${v}" onclick="selectOpt(${q.id},this)"><span>${v}</span></div>`).join('')}</div>`;
   }else if(at==='short'){
@@ -2009,7 +2149,7 @@ function renderExamQuestion(q,num){
   return `<div class="question-card" id="qcard-${q.id}" data-atype="${at}">
     <div class="question-num">Pregunta ${num}${at==='open'?' · respuesta abierta':''}</div>
     ${audio}${ctx}
-    <div class="question-text">${q.question}</div>
+    <div class="question-text">${esc(q.question)}</div>
     ${ans}
   </div>`;
 }
@@ -2062,7 +2202,7 @@ async function submitExam(){
       ${hasOpen?`<div style="background:var(--warn-soft);border:1px solid var(--border2);border-radius:var(--r-sm);padding:10px 16px;font-size:12px;color:var(--ink2);text-align:center;margin-bottom:14px">Tienes respuestas abiertas que tu profesor revisará manualmente.</div>`:''}
       ${!passed?`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r-sm);padding:14px 16px;font-size:13px;color:var(--ink2);text-align:center;margin-bottom:14px;line-height:1.6">Para una <b>segunda instancia</b> de este examen, contacta al administrador.</div>
       <div style="display:flex;justify-content:center;margin-bottom:18px"><a class="btn btn-wa" href="${examWaLink(exam,score)}" target="_blank" rel="noopener">Solicitar segunda instancia</a></div>`:`<div style="background:var(--bg2);border-radius:var(--r-sm);padding:10px 16px;font-size:12px;color:var(--muted);text-align:center;margin-bottom:20px">Este examen ha sido enviado y no puede realizarse nuevamente.</div>`}
-      <div style="display:flex;gap:10px;justify-content:center"><button class="btn btn-primary" onclick="showView('module-detail')">Volver al módulo</button></div>
+      <div style="display:flex;gap:10px;justify-content:center"><button class="btn btn-primary" onclick="showView('exams')">Volver a Exámenes</button></div>
     </div>`;
   window.scrollTo(0,0);
 }
@@ -2161,11 +2301,12 @@ function renderAdminModules(){
     const lc=allLessons.filter(l=>l.module_id===m.id).length;
     const th=m.thumbnail_url?`<img src="${m.thumbnail_url}" style="width:48px;height:32px;object-fit:cover;border-radius:4px;border:0.5px solid var(--border)">`:`<div style="width:48px;height:32px;background:var(--bg2);border-radius:4px;border:0.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--muted)">Sin img</div>`;
     return `<tr>
-      <td class="text-muted">${m.order_index}</td><td>${th}</td><td class="fw-500">${m.title}</td>
+      <td class="text-muted">${m.order_index}</td><td>${th}</td><td class="fw-500">${esc(m.title)}</td>
       <td>${lvMap[m.level]||lvMap.beginner}</td>
       <td><span class="badge badge-muted">${lc} lección${lc!==1?'es':''}</span></td>
       <td>${m.is_published?'<span class="badge badge-accent">Publicado</span>':'<span class="badge badge-muted">Borrador</span>'}</td>
       <td><div class="col-actions">
+        <button class="btn btn-ghost btn-xs" onclick="openMaterialModal(null,${m.id})">+ Material</button>
         <button class="btn btn-ghost btn-xs" onclick="togglePublish(${m.id},${m.is_published})">${m.is_published?'Despublicar':'Publicar'}</button>
         <button class="btn btn-ghost btn-xs" onclick="editModule(${m.id})">Editar</button>
         <button class="btn btn-danger btn-xs" onclick="deleteModule(${m.id})">Eliminar</button>
@@ -2191,7 +2332,8 @@ function openExamModal(exam=null){
   /* Columnas Supabase requeridas — ver SUPABASE_MATERIALES.md (sección Exámenes) */
   document.getElementById('exam-editing-id').value=exam?.id||'';
   const sel=document.getElementById('exam-module-select');
-  sel.innerHTML=allModules.map(m=>`<option value="${m.id}"${exam?.module_id===m.id?' selected':''}>${m.title}</option>`).join('');
+  sel.innerHTML=allModules.map(m=>`<option value="${m.id}"${exam?.module_id===m.id?' selected':''}>${esc(m.title)}</option>`).join('');
+  fillTargetGroup('exam-group',exam?.target_group);
   const qBuilder=document.getElementById('questions-builder');qBuilder.innerHTML='';
   if(exam){const qs=allQuestions.filter(q=>q.exam_id===exam.id);if(qs.length)qs.forEach(q=>addQuestionRow(q));else addQuestionRow();}
   else addQuestionRow();
@@ -2272,6 +2414,7 @@ async function saveExam(){
     module_id:parseInt(document.getElementById('exam-module-select').value),
     pass_score:parseInt(document.getElementById('exam-pass-score').value)||70,
     exam_type:document.getElementById('exam-type').value,
+    target_group:document.getElementById('exam-group').value||null,
   };
   if(!payload.title){toast('El título es obligatorio','error');return;}
   let examId=editId;
@@ -2356,8 +2499,9 @@ function renderAdminExams(){
     const qc=allQuestions.filter(q=>q.exam_id===ex.id).length;
     const tName=ex.exam_type==='final'?'<span class="badge badge-warn">Final</span>':'<span class="badge badge-muted">Mensual</span>';
     const status=ex.is_published?'<span class="badge badge-green">Visible</span>':'<span class="badge badge-muted">Bloqueado</span>';
+    const grp=ex.target_group?`<span class="badge badge-blue">${ex.target_group}</span>`:'<span class="badge badge-muted">Todos</span>';
     return `<tr>
-      <td class="fw-500">${ex.title} ${tName} ${status}</td>
+      <td class="fw-500">${esc(ex.title)} ${tName} ${status} ${grp}</td>
       <td class="text-muted">${mod?.title||'—'}</td>
       <td><span class="badge badge-accent">${qc} preguntas</span></td>
       <td><span class="badge badge-green">${ex.pass_score||70}%</span></td>
@@ -2392,7 +2536,7 @@ async function openAccessModal(studentId,studentName){
   document.getElementById('access-grid').innerHTML=published.map(m=>{
     const acc=(accList||[]).find(a=>a.module_id===m.id);const on=acc?.unlocked||false;
     return `<div class="flex ai-center jc-between" style="padding:10px 14px;background:var(--bg2);border-radius:var(--r-sm);border:0.5px solid var(--border)">
-      <div><div class="fs-13 fw-500">${m.title}</div><div class="fs-11 text-muted">Módulo ${m.order_index}</div></div>
+      <div><div class="fs-13 fw-500">${esc(m.title)}</div><div class="fs-11 text-muted">Módulo ${m.order_index}</div></div>
       <button class="btn ${on?'btn-success':'btn-ghost'} btn-sm" onclick="toggleAccess('${studentId}',${m.id},${on});openAccessModal('${studentId}','${studentName}')">${on?'Desbloqueado':'Bloqueado'}</button>
     </div>`;
   }).join('')||'<p class="fs-13 text-muted">No hay módulos publicados.</p>';
@@ -2435,7 +2579,7 @@ function renderExtra(cat){
     ?'<div class="materials-grid">'+items.map(v=>`
     <div class="material-card">
       <div class="material-ic"><svg viewBox="0 0 24 24" stroke-width="1.5" fill="none"><path d="M15 10l4.553-2.276A1 1 0 0121 8.723v6.554a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg></div>
-      <div><div class="material-title">${v.title}</div>${v.description?`<div class="material-desc">${v.description}</div>`:''}</div>
+      <div><div class="material-title">${esc(v.title)}</div>${v.description?`<div class="material-desc">${esc(v.description)}</div>`:''}</div>
       <button class="btn btn-primary btn-sm w100" onclick="playVideo(${v.id})">Ver video</button>
       ${isAdmin?`<div class="flex gap6"><button class="btn btn-ghost btn-xs f1" onclick="editExtra(${v.id})">Editar</button><button class="btn btn-danger btn-xs f1" onclick="deleteExtra(${v.id})">Eliminar</button></div>`:''}
     </div>`).join('')+'</div>'
@@ -2450,8 +2594,8 @@ function renderExtraLinks(cat){
     ?'<div class="materials-grid">'+links.map(l=>`
     <div class="material-card">
       <div class="material-ic"><svg viewBox="0 0 24 24" stroke-width="1.5" fill="none"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
-      <div><div class="material-title">${l.title}</div>${l.description?`<div class="material-desc">${l.description}</div>`:''}</div>
-      <a class="btn btn-primary btn-sm w100" href="${l.url}" target="_blank" rel="noopener" style="justify-content:center">Abrir enlace</a>
+      <div><div class="material-title">${esc(l.title)}</div>${l.description?`<div class="material-desc">${esc(l.description)}</div>`:''}</div>
+      <a class="btn btn-primary btn-sm w100" href="${esc(l.url)}" target="_blank" rel="noopener" style="justify-content:center">Abrir enlace</a>
       ${isAdmin?`<div class="flex gap6"><button class="btn btn-ghost btn-xs f1" onclick="editLink(${l.id})">Editar</button><button class="btn btn-danger btn-xs f1" onclick="deleteLink(${l.id})">Eliminar</button></div>`:''}
     </div>`).join('')+'</div>'
     :'<p class="fs-13 text-muted">Aún no hay enlaces en esta sección.</p>';
@@ -2536,38 +2680,75 @@ async function deleteExtra(id){
 // ═══════════════════════
 // STUDENTS VIEW
 // ═══════════════════════
-function renderGroupsView(filter='',groupFilter=''){
-  const students=allStudentsCache;
-  const published=allModules.filter(m=>m.is_published).length;
-  // Solo mostramos tarjetas de grupos que tienen alumnos (+ "Sin grupo" si aplica)
-  const cnt={};students.forEach(s=>{const g=s.group_name||'Sin grupo';cnt[g]=(cnt[g]||0)+1;});
-  const groups=GROUPS.filter(g=>cnt[g]);if(cnt['Sin grupo'])groups.push('Sin grupo');
-  document.getElementById('group-cards').innerHTML=groups.length?groups.map(g=>{
-    const c=g==='Sin grupo'?'#4a7090':'#e8eaed';
-    return `<div class="group-card"><div class="group-card-name"><div class="group-dot" style="background:${c}"></div>${g}</div>
-    <div class="group-card-count" style="color:${c}">${cnt[g]}</div>
-    <div class="group-card-lbl">alumnos</div></div>`;}).join('')
-    :'<div class="group-card"><div class="group-card-lbl">Aún no hay alumnos en ningún grupo.</div></div>';
-  let filtered=students.filter(s=>{
-    const ms=!filter||s.full_name.toLowerCase().includes(filter.toLowerCase())||s.email.toLowerCase().includes(filter.toLowerCase());
-    const mg=!groupFilter||s.group_name===groupFilter;
-    return ms&&mg;
-  });
-  document.getElementById('groups-count-lbl').textContent=`${filtered.length} de ${students.length} alumnos`;
-  const gbcls=g=>(!g||g==='Sin grupo')?'badge-muted':'badge-accent';
-  document.getElementById('groups-tbody').innerHTML=filtered.map(s=>{
-    const pct=published>0?Math.round((s.unlocked||0)/published*100):0;
-    return `<tr>
-      <td><div class="flex ai-center gap8"><div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#3a3a42,#17171c);border:1px solid rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;flex-shrink:0">${s.full_name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase()}</div><span class="fw-500">${s.full_name}</span></div></td>
-      <td class="text-muted fs-12">${s.email}</td>
-      <td><span class="badge ${gbcls(s.group_name)}">${s.group_name||'Sin grupo'}</span></td>
+let studentsSelectedGroup=null;
+// módulo actual del alumno = el de mayor order_index que tiene desbloqueado
+function studentCurrentModule(s,pub){
+  const ids=new Set(allAccessCache.filter(a=>a.student_id===s.id&&a.unlocked).map(a=>a.module_id));
+  let best=null;pub.forEach(m=>{if(ids.has(m.id))best=m;});return best;
+}
+function studentRow(s,published){
+  const pct=published>0?Math.round((s.unlocked||0)/published*100):0;
+  const gbcls=(!s.group_name||s.group_name==='Sin grupo')?'badge-muted':'badge-accent';
+  const initials=esc((s.full_name||s.email||'?').split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase());
+  return `<tr>
+      <td><div class="flex ai-center gap8"><div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#3a3a42,#17171c);border:1px solid rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;flex-shrink:0">${initials}</div><span class="fw-500">${esc(s.full_name||'—')}</span></div></td>
+      <td class="text-muted fs-12">${esc(s.email)}</td>
+      <td><span class="badge ${gbcls}">${esc(s.group_name||'Sin grupo')}</span></td>
       <td><div class="flex ai-center gap8"><div style="flex:1;height:6px;background:rgba(255,255,255,.08);border-radius:3px;min-width:60px;overflow:hidden"><div style="height:100%;border-radius:3px;background:linear-gradient(90deg,#e8eaed,#9ca3af);width:${pct}%"></div></div><span class="fs-11 text-muted">${s.unlocked||0}/${published}</span></div></td>
       <td class="fs-12 text-muted">${s.last_access?new Date(s.last_access).toLocaleDateString('es-ES',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—'}</td>
       <td><div class="col-actions"><button class="btn btn-ghost btn-xs" onclick="openStudentProfile('${s.id}')">Ver perfil</button></div></td>
     </tr>`;
-  }).join('');
 }
-function filterStudents(search){renderGroupsView(search,document.getElementById('filter-group')?.value||'');}
+function openStudentGroup(g){studentsSelectedGroup=g||null;const sel=document.getElementById('filter-group');if(sel)sel.value=g||'';renderGroupsView(document.getElementById('search-student')?.value||'');}
+function renderGroupsView(filter=''){
+  const students=allStudentsCache;
+  const pub=allModules.filter(m=>m.is_published).sort((a,b)=>(a.order_index||0)-(b.order_index||0));
+  const published=pub.length;
+  // Tarjetas de grupo (clicables); solo grupos con alumnos (+ "Sin grupo")
+  const cnt={};students.forEach(s=>{const g=s.group_name||'Sin grupo';cnt[g]=(cnt[g]||0)+1;});
+  const groups=GROUPS.filter(g=>cnt[g]);if(cnt['Sin grupo'])groups.push('Sin grupo');
+  document.getElementById('group-cards').innerHTML=groups.length?groups.map(g=>{
+    const c=g==='Sin grupo'?'#4a7090':'#e8eaed';const sel=studentsSelectedGroup===g?' sel':'';
+    return `<div class="group-card clk${sel}" onclick="openStudentGroup('${g}')"><div class="group-card-name"><div class="group-dot" style="background:${c}"></div>${g}</div>
+    <div class="group-card-count" style="color:${c}">${cnt[g]}</div>
+    <div class="group-card-lbl">alumnos</div></div>`;}).join('')
+    :'<div class="group-card"><div class="group-card-lbl">Aún no hay alumnos en ningún grupo.</div></div>';
+  const tbody=document.getElementById('groups-tbody');
+  const lbl=document.getElementById('groups-count-lbl');
+  const hdr=document.querySelector('#view-admin-students .table-hdr-title');
+  const term=(filter||'').trim().toLowerCase();
+  // 1) Búsqueda global (en todos los grupos)
+  if(term){
+    const matches=students.filter(s=>(s.full_name||'').toLowerCase().includes(term)||(s.email||'').toLowerCase().includes(term));
+    if(hdr)hdr.textContent='Resultados de búsqueda';
+    lbl.textContent=`${matches.length} coincidencia${matches.length!==1?'s':''}`;
+    tbody.innerHTML=matches.length?matches.map(s=>studentRow(s,published)).join(''):'<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">Sin coincidencias.</td></tr>';
+    return;
+  }
+  // 2) Grupo seleccionado → alumnos agrupados por el módulo en que van
+  if(studentsSelectedGroup){
+    const g=studentsSelectedGroup;
+    const list=students.filter(s=>(s.group_name||'Sin grupo')===g);
+    if(hdr)hdr.innerHTML=`<button class="btn btn-ghost btn-xs" onclick="openStudentGroup(null)" style="margin-right:8px">← Grupos</button>${g}`;
+    lbl.textContent=`${list.length} alumno${list.length!==1?'s':''}`;
+    const buckets=new Map();
+    list.forEach(s=>{const m=studentCurrentModule(s,pub);const k=m?m.id:'none';if(!buckets.has(k))buckets.set(k,{mod:m,arr:[]});buckets.get(k).arr.push(s);});
+    const ordered=[...buckets.values()].sort((a,b)=>{if(!a.mod)return 1;if(!b.mod)return -1;return (a.mod.order_index||0)-(b.mod.order_index||0);});
+    let html='';
+    ordered.forEach(bk=>{
+      const title=bk.mod?`Módulo ${bk.mod.order_index||''} — ${bk.mod.title}`:'Sin módulo iniciado';
+      html+=`<tr><td colspan="6" style="background:var(--bg2);font-weight:600;color:var(--ink2);font-size:12px;padding:8px 14px">${title} <span class="text-muted" style="font-weight:400">· ${bk.arr.length}</span></td></tr>`;
+      html+=bk.arr.map(s=>studentRow(s,published)).join('');
+    });
+    tbody.innerHTML=html||'<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">Este grupo no tiene alumnos.</td></tr>';
+    return;
+  }
+  // 3) Sin grupo seleccionado → invitar a elegir
+  if(hdr)hdr.textContent='Lista de alumnos';
+  lbl.textContent=`${students.length} alumno${students.length!==1?'s':''} en total`;
+  tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:28px;color:var(--muted)">Elige un grupo arriba para ver sus alumnos, o usa el buscador.</td></tr>';
+}
+function filterStudents(search){renderGroupsView(search);}
 
 async function openStudentProfile(studentId){
   let students=allStudentsCache;
@@ -2586,13 +2767,13 @@ try{const res=await sb.from('profiles').select('*').eq('id',studentId).single();
   document.getElementById('sp-email').textContent=s.email;
   document.getElementById('sp-group-select').value=s.group_name||'';
   const gbcls=(!s.group_name||s.group_name==='Sin grupo')?'badge-muted':'badge-accent';
-  document.getElementById('sp-group-badge').innerHTML=`<span class="badge ${gbcls}">${s.group_name||'Sin grupo'}</span>`;
+  document.getElementById('sp-group-badge').innerHTML=`<span class="badge ${gbcls}">${esc(s.group_name||'Sin grupo')}</span>`;
   let accList=[];
 try{const res=await sb.from('module_access').select('*').eq('student_id',studentId);accList=res.data||[];}catch(e){}
   document.getElementById('sp-modules').innerHTML=published.map(m=>{
     const acc=(accList||[]).find(a=>a.module_id===m.id);const on=acc?.unlocked||false;
     return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg2);border-radius:var(--r-sm);border:0.5px solid var(--border)">
-      <div><div class="fs-13 fw-500">${m.title}</div><div class="fs-11 text-muted">Módulo ${m.order_index}</div></div>
+      <div><div class="fs-13 fw-500">${esc(m.title)}</div><div class="fs-11 text-muted">Módulo ${m.order_index}</div></div>
       <button class="btn ${on?'btn-success':'btn-ghost'} btn-sm" onclick="toggleAccessFromProfile('${studentId}',${m.id},${on},this)">${on?'Desbloqueado':'Bloqueado'}</button>
     </div>`;
   }).join('')||'<p class="fs-12 text-muted">Sin módulos publicados.</p>';
@@ -2734,7 +2915,7 @@ function renderDashboard(){
   const maxC=topMods[0]?.count||1;
   document.getElementById('dash-top-modules').innerHTML=topMods.length?topMods.map((m,i)=>`
     <div class="top-module-row"><span class="top-module-rank">${i+1}</span>
-    <span class="top-module-name" title="${m.name}">${m.name.length>26?m.name.substring(0,24)+'…':m.name}</span>
+    <span class="top-module-name" title="${esc(m.name)}">${esc(m.name.length>26?m.name.substring(0,24)+'…':m.name)}</span>
     <div class="top-module-bar-wrap"><div class="top-module-bar" style="width:${(m.count/maxC)*100}%"></div></div>
     <span class="top-module-count">${m.count}</span></div>`).join(''):'<p class="fs-12 text-muted">Sin módulos publicados</p>';
   // Últimos alumnos registrados (real, por fecha de alta)
@@ -2743,8 +2924,8 @@ function renderDashboard(){
     const when=s.created_at?new Date(s.created_at).toLocaleDateString('es-ES',{day:'numeric',month:'short'}):'—';
     return `<div class="recent-student-row">
       <div class="recent-av">${(s.full_name||s.email).substring(0,2).toUpperCase()}</div>
-      <div class="recent-info"><div class="recent-name">${s.full_name||s.email}</div><div class="recent-time">Registrado: ${when}</div></div>
-      <span class="badge badge-muted recent-badge">${s.group_name||'Sin grupo'}</span>
+      <div class="recent-info"><div class="recent-name">${esc(s.full_name||s.email)}</div><div class="recent-time">Registrado: ${when}</div></div>
+      <span class="badge badge-muted recent-badge">${esc(s.group_name||'Sin grupo')}</span>
     </div>`;}).join(''):'<p class="fs-12 text-muted">Sin alumnos aún</p>';
 }
 
@@ -2851,7 +3032,7 @@ function addMsg(role,content){
 }
 
 function processContent(text){
-  let vocab=[];let html=text;
+  let vocab=[];let html=esc(text);
   html=html.replace(/\[VOCAB:([^\]]+)\]/g,(_,c)=>{const[w,t,d]=c.split('|');if(w&&t&&d)vocab.push({word:w,type:t,def:d});return '';});
   html=html.replace(/\[MULTIWORD:([^\]]+)\]([\s\S]*?)\[\/MULTIWORD\]/g,(_,word,body)=>{
     vocab.push({word,type:'multi',def:'múltiples significados'});
