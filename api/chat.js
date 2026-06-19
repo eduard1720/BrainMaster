@@ -66,7 +66,11 @@ export default async function handler(req, res) {
     })
   });
   const aData = await aRes.json().catch(() => ({}));
-  if (!aRes.ok) return res.status(502).json({ error: 'ai_error', reply: 'Error. Intenta de nuevo.' });
+  if (!aRes.ok) {
+    // TEMPORAL (debug): exponer el motivo real de OpenAI para diagnosticar.
+    const detail = aData?.error?.message || aData?.error?.code || ('HTTP ' + aRes.status);
+    return res.status(200).json({ reply: 'DEBUG OpenAI [' + aRes.status + ']: ' + detail });
+  }
   const reply = aData.choices?.[0]?.message?.content || 'Error. Intenta de nuevo.';
   return res.status(200).json({ reply });
 }
