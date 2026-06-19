@@ -5,3 +5,5 @@ ingles_web/
 *.md
 *.py
 *.pdf
+
+.vercel

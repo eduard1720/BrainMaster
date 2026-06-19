@@ -1,0 +1,11 @@
+# NO publicar datos sensibles ni archivos internos
+CORREOS_ALUMNOS.md
+INFORME_COSTOS.pdf
+PROGRESO.md
+SUPABASE_MATERIALES.md
+Transferencia-BrainMasterEnglish-a-Ruben.pdf
+index.html.bak
+extract_imgs.py
+gen_informe.py
+.git
+.gitignore
