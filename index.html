@@ -1180,7 +1180,7 @@ const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:f
 const ANTHROPIC_KEY='TU_API_KEY_AQUI';
 // La IA pasa por un proxy serverless (api/chat) con verificación de sesión + rate limit.
 // Pon USE_AI_PROXY=true cuando hayas desplegado la función y la env var en Vercel.
-const USE_AI_PROXY=false;
+const USE_AI_PROXY=true;
 const AI_PROXY='/api/chat';
 async function askAI(maxTokens){
   let token=null;try{const{data}=await sb.auth.getSession();token=data?.session?.access_token||null;}catch(e){}
