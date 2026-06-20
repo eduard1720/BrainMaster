@@ -1065,10 +1065,7 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
       </div>
       <div class="field"><label class="label">Descripción</label><textarea class="input" id="mod-desc" placeholder="Descripción del módulo..."></textarea></div>
       <div class="field"><label class="label">URL de miniatura</label><input class="input" id="mod-thumb" placeholder="https://..." oninput="previewThumb('mod-thumb','mod-thumb-preview')"><div class="thumb-preview" id="mod-thumb-preview"><span class="thumb-preview-empty">Vista previa</span></div></div>
-      <div class="flex gap12">
-        <div class="field f1"><label class="label">Nivel</label><select class="input" id="mod-level"><option value="beginner">Básico</option><option value="intermediate">Intermedio</option><option value="advanced">Avanzado</option></select></div>
-        <div class="field f1"><label class="label">Duración total</label><input class="input" id="mod-duration" placeholder="Ej: 2 horas"></div>
-      </div>
+      <div class="field"><label class="label">Nivel</label><select class="input" id="mod-level"><option value="beginner">Básico</option><option value="intermediate">Intermedio</option><option value="advanced">Avanzado</option></select></div>
       <label class="flex ai-center gap8 fs-13" style="cursor:pointer;color:var(--ink2)"><input type="checkbox" id="mod-published" style="accent-color:var(--accent)"> Publicado (visible para alumnos)</label>
       <input type="hidden" id="mod-editing-id">
       <div style="border-top:0.5px solid var(--border);padding-top:16px;margin-top:4px">
@@ -1891,45 +1888,6 @@ const iconSvgs=[
 // ═══════════════════════
 // MODULES GRID
 // ═══════════════════════
-// ═══════════════════════
-// DURATION AUTO-CALC
-// ═══════════════════════
-function parseDurationToSeconds(str){
-  if(!str||typeof str!=='string')return 0;
-  str=str.trim();
-  // mm:ss  or  hh:mm:ss
-  if(/^\d+:\d{2}(:\d{2})?$/.test(str)){
-    const parts=str.split(':').map(Number);
-    if(parts.length===3)return parts[0]*3600+parts[1]*60+parts[2];
-    return parts[0]*60+parts[1];
-  }
-  // "45 min", "1 hora", "1h 30m", "90m", etc.
-  let total=0;
-  const h=str.match(/(\d+\.?\d*)\s*h/i);
-  const m=str.match(/(\d+\.?\d*)\s*m/i);
-  const s=str.match(/(\d+\.?\d*)\s*s/i);
-  if(h)total+=parseFloat(h[1])*3600;
-  if(m)total+=parseFloat(m[1])*60;
-  if(s)total+=parseFloat(s[1]);
-  // plain number → assume minutes
-  if(!h&&!m&&!s){const n=parseFloat(str);if(!isNaN(n))total=n*60;}
-  return Math.round(total);
-}
-
-function formatSeconds(sec){
-  if(!sec||sec<=0)return null;
-  const h=Math.floor(sec/3600);
-  const m=Math.floor((sec%3600)/60);
-  if(h>0)return m>0?`${h}h ${m}m`:`${h}h`;
-  return `${m}m`;
-}
-
-function calcModuleDuration(moduleId){
-  const lessons=allLessons.filter(l=>l.module_id===moduleId);
-  const total=lessons.reduce((acc,l)=>acc+parseDurationToSeconds(l.duration),0);
-  return formatSeconds(total);
-}
-
 function renderModulesGrid(){
   const grid=document.getElementById('modules-grid');
   const published=allModules.filter(m=>m.is_published);
@@ -2000,8 +1958,7 @@ async function openModuleDetail(moduleId){
         <div class="lesson-title">${esc(l.title)}</div>
         ${l.description?`<div class="lesson-desc">${esc(l.description)}</div>`:''}
       </div>
-      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
-        ${l.duration?`<span class="lesson-dur">${l.duration}</span>`:''}
+      <div style="display:flex;align-items:center;flex-shrink:0">
         <svg viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5" width="14" height="14"><path d="M9 18l6-6-6-6"/></svg>
       </div>
     </div>`;
@@ -2258,7 +2215,6 @@ function openModuleModal(mod=null){
   document.getElementById('mod-desc').value=mod?.description||'';
   document.getElementById('mod-thumb').value=mod?.thumbnail_url||'';
   document.getElementById('mod-level').value=mod?.level||'beginner';
-  document.getElementById('mod-duration').value=mod?.duration||'';
   document.getElementById('mod-published').checked=mod?.is_published||false;
   document.getElementById('mod-order').value=mod?.order_index||(allModules.length+1);
   document.getElementById('mod-editing-id').value=mod?.id||'';
@@ -2280,10 +2236,7 @@ function addLessonRow(lesson=null){
       <button class="btn btn-danger btn-xs" onclick="this.closest('.question-builder-item').remove()">Eliminar</button>
     </div>
     <div class="flex col gap8">
-      <div class="flex gap8">
-        <div class="field f1"><input class="input" placeholder="Título de la lección" value="${lesson?.title||''}"></div>
-        <div class="field" style="width:100px"><input class="input" placeholder="Duración" value="${lesson?.duration||''}"></div>
-      </div>
+      <div class="field f1"><input class="input" placeholder="Título de la lección" value="${lesson?.title||''}"></div>
       <div class="field"><input class="input" placeholder="Descripción (opcional)" value="${lesson?.description||''}"></div>
       <div class="field"><input class="input" placeholder="URL miniatura (opcional)" value="${lesson?.thumbnail_url||''}"></div>
       <div class="field"><input class="input" placeholder="Bunny Library ID" value="${lesson?.bunny_library_id||''}"></div>
@@ -2300,7 +2253,6 @@ async function saveModule(){
     description:document.getElementById('mod-desc').value.trim(),
     thumbnail_url:document.getElementById('mod-thumb').value.trim(),
     level:document.getElementById('mod-level').value,
-    duration:document.getElementById('mod-duration').value.trim(),
     order_index:parseInt(document.getElementById('mod-order').value)||1,
     is_published:document.getElementById('mod-published').checked,
   };
@@ -2313,7 +2265,7 @@ async function saveModule(){
     const row=lessonRows[i];
     const inputs=row.querySelectorAll('input.input');
     const lessonId=row.querySelector('input[type=hidden]').value;
-    const lPayload={module_id:parseInt(moduleId),title:inputs[0].value.trim(),duration:inputs[1].value.trim(),description:inputs[2].value.trim(),thumbnail_url:inputs[3].value.trim(),bunny_library_id:inputs[4].value.trim(),bunny_video_id:inputs[5].value.trim(),order_index:i+1};
+    const lPayload={module_id:parseInt(moduleId),title:inputs[0].value.trim(),description:inputs[1].value.trim(),thumbnail_url:inputs[2].value.trim(),bunny_library_id:inputs[3].value.trim(),bunny_video_id:inputs[4].value.trim(),order_index:i+1};
     if(!lPayload.title)continue;
     if(lessonId)await sb.from('lessons').update(lPayload).eq('id',lessonId);
     else await sb.from('lessons').insert(lPayload);
