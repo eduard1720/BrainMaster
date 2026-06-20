@@ -21,20 +21,16 @@ export default async function handler(req, res) {
   const ANON = process.env.SUPABASE_ANON_KEY;
   const SRK  = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const AK   = process.env.OPENAI_API_KEY;
-  if (!SUPA || !ANON || !SRK || !AK) {
-    // TEMPORAL (debug): mostrar qué variable falta.
-    const miss = [!SUPA && 'SUPABASE_URL', !ANON && 'SUPABASE_ANON_KEY', !SRK && 'SUPABASE_SERVICE_ROLE_KEY', !AK && 'OPENAI_API_KEY'].filter(Boolean).join(', ');
-    return res.status(200).json({ reply: 'DEBUG config: faltan variables -> ' + miss });
-  }
+  if (!SUPA || !ANON || !SRK || !AK) return res.status(500).json({ error: 'server_not_configured' });
 
   // 1) Verificar el JWT del alumno
   const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
-  if (!token) return res.status(200).json({ reply: 'DEBUG auth: no llega token de sesion (no_auth). Inicia sesion como alumno real de Supabase, no como admin local.' });
+  if (!token) return res.status(401).json({ error: 'no_auth' });
   const uRes = await fetch(`${SUPA}/auth/v1/user`, { headers: { apikey: ANON, Authorization: 'Bearer ' + token } });
-  if (!uRes.ok) return res.status(200).json({ reply: 'DEBUG auth: token rechazado por Supabase (invalid_token) HTTP ' + uRes.status });
+  if (!uRes.ok) return res.status(401).json({ error: 'invalid_token' });
   const user = await uRes.json();
   const uid = user.id;
-  if (!uid) return res.status(200).json({ reply: 'DEBUG auth: respuesta sin user.id (invalid_token)' });
+  if (!uid) return res.status(401).json({ error: 'invalid_token' });
 
   // 2) Rate limiting: contar usos en la ventana
   const since = new Date(Date.now() - AI_WINDOW_MIN * 60000).toISOString();
@@ -72,11 +68,7 @@ export default async function handler(req, res) {
     })
   });
   const aData = await aRes.json().catch(() => ({}));
-  if (!aRes.ok) {
-    // TEMPORAL (debug): exponer el motivo real de OpenAI para diagnosticar.
-    const detail = aData?.error?.message || aData?.error?.code || ('HTTP ' + aRes.status);
-    return res.status(200).json({ reply: 'DEBUG OpenAI [' + aRes.status + ']: ' + detail });
-  }
+  if (!aRes.ok) return res.status(502).json({ error: 'ai_error', reply: 'Error. Intenta de nuevo.' });
   const reply = aData.choices?.[0]?.message?.content || 'Error. Intenta de nuevo.';
   return res.status(200).json({ reply });
 }

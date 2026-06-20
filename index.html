@@ -3145,8 +3145,11 @@ function speakText(text,onEnd){
   const clean=text.replace(/[^\w\s.,!?'-]/g,' ').substring(0,500);
   if(!clean.trim())return;
   const u=new SpeechSynthesisUtterance(clean);
-  u.lang='en-US';u.rate=0.9;u.pitch=1.05;u.volume=1;
-  const preferred=synth.getVoices().find(v=>v.lang.startsWith('en')&&(v.name.includes('Samantha')||v.name.includes('Google US')||v.name.includes('Karen')));
+  u.lang='en-US';u.rate=1.0;u.pitch=1.0;u.volume=1;
+  const voices=synth.getVoices();
+  // Prioriza voces neuronales/online (más naturales) y conocidas de buena calidad.
+  const byName=n=>voices.find(v=>v.lang&&v.lang.startsWith('en')&&v.name.includes(n));
+  const preferred=byName('Google US English')||byName('Microsoft Aria')||byName('Microsoft Jenny')||byName('Samantha')||byName('Google UK English Female')||voices.find(v=>v.lang&&v.lang.startsWith('en')&&!v.localService)||voices.find(v=>v.lang&&v.lang.startsWith('en'));
   if(preferred)u.voice=preferred;
   u.onend=()=>{document.getElementById('speaking-bars').classList.remove('on');if(onEnd)onEnd();};
   u.onerror=()=>{document.getElementById('speaking-bars').classList.remove('on');if(onEnd)onEnd();};
