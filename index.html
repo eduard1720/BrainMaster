@@ -1198,9 +1198,9 @@ const SUPER_ADMIN_EMAIL='eduard1@gmail.com';
 const SUPPORT_WHATSAPP='59165884652';            // número con código de país, SIN + ni espacios
 const SUPPORT_WA_MSG='Hola, necesito ayuda con la plataforma Brain Master English';
 const SUPPORT_HOURS=[
-  {d:'Turno mañana', h:'10:00 a 11:00'},
-  {d:'Turno tarde', h:'16:00 a 17:00'},
-  {d:'Turno noche', h:'21:00 a 22:00'}
+  {d:'🌅 Mañana', h:'09:00 – 10:00'},
+  {d:'☀️ Tarde', h:'18:00 – 19:00'},
+  {d:'🌙 Noche', h:'22:00 – 23:00'}
 ];
 // ── Grupos: 1 al 50, formato "Grupo N vip" ──
 const GROUPS=Array.from({length:50},(_,i)=>`Grupo ${i+1} vip`);
@@ -1862,6 +1862,7 @@ function renderSupport(){
     <div class="support-card">
       <div class="support-ic"><svg viewBox="0 0 24 24" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
       <h3>Horarios de atención</h3>
+      <p style="margin-top:-6px">Lunes a viernes · Hora Bolivia 🇧🇴 (GMT-4)</p>
       <ul class="support-hours">${hours}</ul>
     </div>
   </div>`;
