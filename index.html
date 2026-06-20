@@ -1153,6 +1153,7 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
       <div style="flex:1"><div id="sp-name" style="font-size:17px;font-weight:600;color:var(--ink)"></div><div id="sp-email" style="font-size:12px;color:var(--muted);margin-top:2px"></div></div>
       <div id="sp-group-badge"></div>
     </div>
+    <div id="sp-studytime" style="font-size:12px;color:var(--muted);margin-bottom:16px"></div>
     <div style="font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:10px">Acceso a módulos</div>
     <div id="sp-modules" class="flex col gap6" style="margin-bottom:20px;max-height:220px;overflow-y:auto"></div>
     <div style="font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:10px">Exámenes rendidos</div>
@@ -1409,12 +1410,13 @@ async function launchApp(){
     ['dashboard','admin-modules','admin-exams','admin-students','admin-add','admin-materials','admin-sessions'].forEach(v=>{const el=document.querySelector(`.nav-tab[data-view="${v}"]`);if(el)el.classList.remove('hidden');});
     document.getElementById('admin-badge').classList.remove('hidden');
   }
-  initWeekBars();initChat();initSpeech();startSessionTimer();
+  await loadStudyTime();initWeekBars();initChat();initSpeech();startSessionTimer();
   if(isAdmin){showView('dashboard');await loadAdminData();}
   else{showView('classes');await loadModules();}
 }
 
 async function doLogout(){
+  await flushTodayStudy(); // guardar tiempo antes de cerrar sesión (mientras el JWT es válido)
   if(!isAdmin)await sb.auth.signOut();
   clearInterval(sessionTimer);
   if(synth)synth.cancel();
@@ -2823,6 +2825,7 @@ try{const res=await sb.from('module_access').select('*').eq('student_id',student
       <button class="btn ${on?'btn-success':'btn-ghost'} btn-sm" onclick="toggleAccessFromProfile('${studentId}',${m.id},${on},this)">${on?'Desbloqueado':'Bloqueado'}</button>
     </div>`;
   }).join('')||'<p class="fs-12 text-muted">Sin módulos publicados.</p>';
+  renderProfileStudyTime(studentId);
   renderProfileExams(studentId);
   const p30=!!s.plan30_access;const pb=document.getElementById('sp-plan30-btn');
   pb.className='btn '+(p30?'btn-success':'btn-ghost')+' btn-sm';
@@ -2841,6 +2844,17 @@ try{const res=await sb.from('module_access').select('*').eq('student_id',student
   document.getElementById('student-profile-modal').classList.remove('hidden');
 }
 
+async function renderProfileStudyTime(studentId){
+  const el=document.getElementById('sp-studytime');if(!el)return;
+  el.textContent='⏱️ Tiempo estudiado: cargando…';
+  let rows=[];
+  try{const res=await sb.from('study_time').select('day,minutes').eq('student_id',studentId);rows=res.data||[];}catch(e){rows=[];}
+  const total=rows.reduce((s,r)=>s+(Number(r.minutes)||0),0);
+  // Esta semana (desde el lunes)
+  const now=new Date();const ws=new Date(now);ws.setDate(now.getDate()-((now.getDay()+6)%7));ws.setHours(0,0,0,0);
+  const week=rows.reduce((s,r)=>{const d=new Date(r.day+'T00:00:00');return d>=ws?s+(Number(r.minutes)||0):s;},0);
+  el.innerHTML=`⏱️ <b style="color:var(--ink)">Tiempo estudiado:</b> ${fmtStudy(total)} en total · ${fmtStudy(week)} esta semana`;
+}
 async function renderProfileExams(studentId){
   const cont=document.getElementById('sp-exams');if(!cont)return;
   cont.innerHTML='<p class="fs-12 text-muted">Cargando...</p>';
@@ -3004,12 +3018,29 @@ async function updateProgressStats(){
   }catch(e){}
 }
 
-// ── Tiempo estudiado (persistente por alumno y por día, en localStorage) ──
-function studyKey(){return 'bm_studydays_'+(currentUser?.id||'anon');}
+// ── Tiempo estudiado (persistente en Supabase, con caché local) ──
+let studyDays={}; // { 'YYYY-MM-DD': minutos } del alumno actual
+function studyCacheKey(){return 'bm_studydays_'+(currentUser?.id||'anon');}
 function dayKey(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
-function loadStudyDays(){try{return JSON.parse(localStorage.getItem(studyKey())||'{}')||{};}catch(e){return {};}}
-function saveStudyDays(o){try{localStorage.setItem(studyKey(),JSON.stringify(o));}catch(e){}}
 function fmtStudy(m){m=Math.max(0,Math.round(m));if(m<60)return m+' min';const h=Math.floor(m/60),mm=m%60;return mm?h+'h '+mm+'m':h+'h';}
+function saveStudyLocal(){try{localStorage.setItem(studyCacheKey(),JSON.stringify(studyDays));}catch(e){}}
+async function loadStudyTime(){
+  // 1) Caché local primero (instantáneo / offline)
+  try{studyDays=JSON.parse(localStorage.getItem(studyCacheKey())||'{}')||{};}catch(e){studyDays={};}
+  // 2) Supabase como fuente de verdad (solo alumnos con sesión real)
+  if(!isAdmin&&currentUser?.id){
+    try{
+      const{data}=await sb.from('study_time').select('day,minutes').eq('student_id',currentUser.id);
+      if(data){const m={};data.forEach(r=>{m[r.day]=Number(r.minutes)||0;});studyDays=m;saveStudyLocal();}
+    }catch(e){}
+  }
+}
+async function flushTodayStudy(){
+  if(isAdmin||!currentUser?.id)return;
+  const tk=dayKey(new Date());
+  const minutes=Math.round((studyDays[tk]||0)*100)/100;
+  try{await sb.from('study_time').upsert({student_id:currentUser.id,day:tk,minutes,updated_at:new Date().toISOString()},{onConflict:'student_id,day'});}catch(e){}
+}
 
 function initWeekBars(){
   const el=document.getElementById('week-bars');if(!el)return;
@@ -3018,30 +3049,34 @@ function initWeekBars(){
   const weekStart=new Date(now);
   weekStart.setDate(now.getDate()-((now.getDay()+6)%7)); // lunes de esta semana
   weekStart.setHours(0,0,0,0);
-  const store=loadStudyDays();
-  const data=days.map((_,i)=>{const day=new Date(weekStart);day.setDate(weekStart.getDate()+i);return Math.round(store[dayKey(day)]||0);});
+  const data=days.map((_,i)=>{const day=new Date(weekStart);day.setDate(weekStart.getDate()+i);return Math.round(studyDays[dayKey(day)]||0);});
   const max=Math.max(...data,1);
   el.innerHTML=days.map((d,i)=>`
     <div class="bar-col"><div class="bar-fill" style="height:${data[i]?Math.max(3,(data[i]/max)*64):3}px;opacity:${data[i]?1:.2}"><div class="bar-tooltip">${data[i]?fmtStudy(data[i]):'Sin actividad'}</div></div><div class="bar-lbl">${d}</div></div>`).join('');
 }
 function startSessionTimer(){
   sessionStart=Date.now();
-  let last=Date.now();
+  let last=Date.now(),ticks=0;
   const tick=()=>{
     const now=Date.now();
-    const store=loadStudyDays();
     const tk=dayKey(new Date());
-    store[tk]=(store[tk]||0)+(now-last)/60000; // suma los minutos reales transcurridos a HOY
+    studyDays[tk]=(studyDays[tk]||0)+(now-last)/60000; // suma los minutos reales transcurridos a HOY
     last=now;
-    saveStudyDays(store);
+    saveStudyLocal();
     const sessionMin=Math.floor((now-sessionStart)/60000);
     const st=document.getElementById('stat-time');if(st)st.textContent=sessionMin+'m';
-    const total=Object.values(store).reduce((s,v)=>s+v,0); // tiempo total acumulado
+    const total=Object.values(studyDays).reduce((s,v)=>s+v,0); // tiempo total acumulado
     const pt=document.getElementById('prog-time');if(pt)pt.textContent=fmtStudy(total);
     initWeekBars();
+    if(++ticks%4===0)flushTodayStudy(); // guarda en Supabase cada ~60s
   };
   tick();
   sessionTimer=setInterval(tick,15000);
+  // Guardar también al ocultar la pestaña o cerrar (mejor esfuerzo)
+  if(!window._studyVisBound){window._studyVisBound=true;
+    document.addEventListener('visibilitychange',()=>{if(document.hidden)flushTodayStudy();});
+    window.addEventListener('beforeunload',()=>{try{flushTodayStudy();}catch(e){}});
+  }
 }
 </script>
 
