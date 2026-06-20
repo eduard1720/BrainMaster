@@ -3148,7 +3148,8 @@ function speakBubble(btn){
 
 function speakText(text,onEnd){
   if(!synth||!text)return;synth.cancel();
-  const clean=text.replace(/[^\w\s.,!?'-]/g,' ').substring(0,500);
+  // Conserva letras (incl. acentos y ñ) y números; solo limpia símbolos sueltos. No partir palabras acentuadas.
+  const clean=text.replace(/[^\p{L}\p{N}\s.,!?'-]/gu,' ').replace(/\s+/g,' ').trim().substring(0,1500);
   if(!clean.trim())return;
   const u=new SpeechSynthesisUtterance(clean);
   u.lang='en-US';u.rate=1.0;u.pitch=1.0;u.volume=1;
