@@ -584,16 +584,6 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
       </div>
       <button class="btn btn-primary w100" id="login-btn" onclick="doLogin()">Ingresar</button>
       <div style="text-align:center;margin-top:12px"><span class="login-forgot" onclick="forgotPassword()">¿Olvidaste tu contraseña?</span></div>
-      <div class="login-demo">
-        <div class="login-demo-label">Acceso de demostración</div>
-        <button class="demo-btn" onclick="fillLogin('rubenJ@gmail.com','ruben123')">
-          <span class="demo-btn-l">
-            <span class="demo-btn-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#b9bcc4" stroke-width="2"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg></span>
-            <span class="demo-btn-tt"><b>Administrador</b><em>rubenJ@gmail.com</em></span>
-          </span>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
-        </button>
-      </div>
     </div>
   </div>
 </div>
@@ -1205,8 +1195,6 @@ async function askAI(maxTokens,extraSystem){
   if(!res.ok)return 'Error. Intenta de nuevo.';
   return d.reply||'Error. Intenta de nuevo.';
 }
-const ADMIN_EMAIL='rubenJ@gmail.com';
-const ADMIN_PASS='ruben123';
 // Cuenta fantasma del desarrollador: admin invisible + ve TODO el contenido de alumno desbloqueado
 const SUPER_ADMIN_EMAIL='eduard1@gmail.com';
 // ── Soporte (edita estos valores) ──
@@ -1314,7 +1302,6 @@ async function doLogin(){
   const errEl=document.getElementById('login-err');
   const btn=document.getElementById('login-btn');
   errEl.style.display='none';btn.textContent='Ingresando...';btn.disabled=true;
-  if(email===ADMIN_EMAIL&&pass===ADMIN_PASS){currentUser={id:'admin-local',email:ADMIN_EMAIL,name:'Ruben'};isAdmin=true;launchApp();btn.textContent='Ingresar';btn.disabled=false;return;}
 
   const{data,error}=await sb.auth.signInWithPassword({email,password:pass});
   btn.textContent='Ingresar';btn.disabled=false;
