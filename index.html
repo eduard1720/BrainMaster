@@ -1195,12 +1195,45 @@ async function askAI(maxTokens,extraSystem){
 // Cuenta fantasma del desarrollador: admin invisible + ve TODO el contenido de alumno desbloqueado
 const SUPER_ADMIN_EMAIL='eduard1@gmail.com';
 // ── Soporte (edita estos valores) ──
-const SUPPORT_WHATSAPP='59165884652';            // número con código de país, SIN + ni espacios
+const SUPPORT_WHATSAPP='59177067322';            // número con código de país, SIN + ni espacios
 const SUPPORT_WA_MSG='Hola, necesito ayuda con la plataforma Brain Master English';
 const SUPPORT_HOURS=[
   {d:'🌅 Mañana', h:'09:00 – 10:00'},
   {d:'☀️ Tarde', h:'18:00 – 19:00'},
   {d:'🌙 Noche', h:'22:00 – 23:00'}
+];
+// Desglose por país (hora local equivalente a cada turno en Bolivia)
+const SUPPORT_BY_COUNTRY=[
+  {turno:'🌅 Mañana', bolivia:'09:00 – 10:00', paises:[
+    {f:'🇲🇽', n:'México', h:'07:00 – 08:00'},
+    {f:'🇸🇻', n:'El Salvador', h:'07:00 – 08:00'},
+    {f:'🇨🇴', n:'Colombia', h:'08:00 – 09:00'},
+    {f:'🇪🇨', n:'Ecuador', h:'08:00 – 09:00'},
+    {f:'🇵🇦', n:'Panamá', h:'08:00 – 09:00'},
+    {f:'🇵🇪', n:'Perú', h:'08:00 – 09:00'},
+    {f:'🇨🇱', n:'Chile', h:'09:00 – 10:00'},
+    {f:'🇩🇴', n:'R. Dominicana', h:'09:00 – 10:00'},
+  ]},
+  {turno:'☀️ Tarde', bolivia:'18:00 – 19:00', paises:[
+    {f:'🇲🇽', n:'México', h:'16:00 – 17:00'},
+    {f:'🇸🇻', n:'El Salvador', h:'16:00 – 17:00'},
+    {f:'🇨🇴', n:'Colombia', h:'17:00 – 18:00'},
+    {f:'🇪🇨', n:'Ecuador', h:'17:00 – 18:00'},
+    {f:'🇵🇦', n:'Panamá', h:'17:00 – 18:00'},
+    {f:'🇵🇪', n:'Perú', h:'17:00 – 18:00'},
+    {f:'🇨🇱', n:'Chile', h:'18:00 – 19:00'},
+    {f:'🇩🇴', n:'R. Dominicana', h:'18:00 – 19:00'},
+  ]},
+  {turno:'🌙 Noche', bolivia:'22:00 – 23:00', paises:[
+    {f:'🇲🇽', n:'México', h:'20:00 – 21:00'},
+    {f:'🇸🇻', n:'El Salvador', h:'20:00 – 21:00'},
+    {f:'🇨🇴', n:'Colombia', h:'21:00 – 22:00'},
+    {f:'🇪🇨', n:'Ecuador', h:'21:00 – 22:00'},
+    {f:'🇵🇦', n:'Panamá', h:'21:00 – 22:00'},
+    {f:'🇵🇪', n:'Perú', h:'21:00 – 22:00'},
+    {f:'🇨🇱', n:'Chile', h:'22:00 – 23:00'},
+    {f:'🇩🇴', n:'R. Dominicana', h:'22:00 – 23:00'},
+  ]},
 ];
 // ── Grupos: 1 al 50, formato "Grupo N vip" ──
 const GROUPS=Array.from({length:50},(_,i)=>`Grupo ${i+1} vip`);
@@ -1852,6 +1885,11 @@ function renderSupport(){
   const cont=document.getElementById('support-content');if(!cont)return;
   const wa='https://wa.me/'+SUPPORT_WHATSAPP.replace(/[^0-9]/g,'')+'?text='+encodeURIComponent(SUPPORT_WA_MSG);
   const hours=SUPPORT_HOURS.map(h=>`<li><span class="d">${h.d}</span><span class="h">${h.h}</span></li>`).join('');
+  const byCountry=SUPPORT_BY_COUNTRY.map(t=>`
+    <div style="margin-top:14px">
+      <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:6px">${t.turno} <span style="color:var(--muted);font-weight:500">· Bolivia ${t.bolivia}</span></div>
+      <ul class="support-hours">${t.paises.map(p=>`<li><span class="d">${p.f} ${p.n}</span><span class="h">${p.h}</span></li>`).join('')}</ul>
+    </div>`).join('');
   cont.innerHTML=`<div class="support-grid">
     <div class="support-card">
       <div class="support-ic"><svg viewBox="0 0 24 24" stroke-width="1.5"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg></div>
@@ -1865,6 +1903,12 @@ function renderSupport(){
       <p style="margin-top:-6px">Lunes a viernes · Hora Bolivia 🇧🇴 (GMT-4)</p>
       <ul class="support-hours">${hours}</ul>
     </div>
+  </div>
+  <div class="support-card" style="margin-top:16px">
+    <div class="support-ic"><svg viewBox="0 0 24 24" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 010 18M12 3a15 15 0 000 18"/></svg></div>
+    <h3>Horarios por país</h3>
+    <p style="margin-top:-6px">Hora local equivalente a cada turno (lunes a viernes)</p>
+    ${byCountry}
   </div>`;
 }
 
