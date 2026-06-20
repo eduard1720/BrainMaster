@@ -2149,7 +2149,7 @@ async function openExam(examId){
   const exam=allExams.find(e=>e.id===examId);if(!exam)return;
   if(!isAdmin&&!exam.is_published){toast('Este examen aún no está disponible','error');return;}
   if(!isAdmin&&!targetGroupOk(exam.target_group)){toast('Este examen no está dirigido a tu grupo','error');return;}
-  if(currentUser.id!=='admin-local'){
+  if(!isAdmin){
     try{
       const{data:prevArr}=await sb.from('exam_results').select('score,passed').eq('exam_id',examId).eq('student_id',currentUser.id).limit(1);
       const prev=prevArr&&prevArr.length?prevArr[0]:null;
@@ -2235,7 +2235,7 @@ async function submitExam(){
   const score=auto?Math.round(correct/auto*100):0;
   const passed=score>=(exam.pass_score||70);
   document.getElementById('exam-submit-area').innerHTML='';
-  if(currentUser.id!=='admin-local'){try{await sb.from('exam_results').insert({exam_id:currentExamId,student_id:currentUser.id,score,passed});}catch(e){}}
+  if(!isAdmin){try{await sb.from('exam_results').insert({exam_id:currentExamId,student_id:currentUser.id,score,passed});}catch(e){}}
   document.getElementById('exam-results-container').innerHTML=`
     <div class="exam-results-card">
       <div style="font-size:64px;text-align:center;margin-bottom:8px">${passed?'🎉':'😔'}</div>
