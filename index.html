@@ -879,7 +879,7 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
 
     <!-- SESIONES EN VIVO (alumno) -->
     <div id="view-sessions" class="view">
-      <div class="page-hdr"><div class="page-title">Sesiones en vivo</div><div class="page-sub">Próximas clases y reuniones en directo</div></div>
+      <div class="page-hdr"><div class="page-title">Sesiones en vivo</div><div class="page-sub">Coordinadas por WhatsApp · te asignamos grupo y horario</div></div>
       <div id="sessions-student-content"></div>
     </div>
 
@@ -1197,6 +1197,7 @@ const SUPER_ADMIN_EMAIL='eduard1@gmail.com';
 // ── Soporte (edita estos valores) ──
 const SUPPORT_WHATSAPP='59177067322';            // número con código de país, SIN + ni espacios
 const SUPPORT_WA_MSG='Hola, necesito ayuda con la plataforma Brain Master English';
+const SUPPORT_WA_MSG_ZOOM='Hola, quiero unirme a las sesiones en vivo por Zoom de Brain Master English. ¿A qué grupo y horario pertenezco?';
 const SUPPORT_HOURS=[
   {d:'🌅 Mañana', h:'09:00 – 10:00'},
   {d:'☀️ Tarde', h:'18:00 – 19:00'},
@@ -1802,11 +1803,17 @@ function sessionVisibleForStudent(s){
 }
 function renderStudentSessions(){
   const cont=document.getElementById('sessions-student-content');if(!cont)return;
+  const waZoom='https://wa.me/'+SUPPORT_WHATSAPP.replace(/[^0-9]/g,'')+'?text='+encodeURIComponent(SUPPORT_WA_MSG_ZOOM);
+  const cta=`<div class="support-card" style="margin-bottom:18px">
+    <div class="support-ic"><svg viewBox="0 0 24 24" stroke-width="1.5"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg></div>
+    <h3>Sesiones en vivo por WhatsApp</h3>
+    <p>Las sesiones en vivo (Zoom) se coordinan por WhatsApp. Toca el botón y te diremos tu <b>grupo</b> y tu <b>horario</b>, y te agregaremos al grupo correspondiente.</p>
+    <a class="btn btn-wa w100" href="${waZoom}" target="_blank" rel="noopener" style="justify-content:center">Unirme por WhatsApp</a>
+  </div>`;
   const now=Date.now();
   let list=allSessions.filter(sessionVisibleForStudent).map(s=>({s,t:s.starts_at?new Date(s.starts_at).getTime():0}));
   list=list.filter(x=>x.t===0||x.t>now-3*3600*1000).sort((a,b)=>a.t-b.t);
-  if(!list.length){cont.innerHTML='<div class="ses-empty"><p class="fs-13 text-muted">No tienes sesiones en vivo programadas por ahora.</p></div>';return;}
-  cont.innerHTML=list.map(({s,t})=>{
+  const listHtml=!list.length?'':list.map(({s,t})=>{
     const d=t?new Date(t):null;
     const live=t&&now>=t&&now<=t+2*3600*1000;
     const dd=d?d.getDate():'–';const mm=d?MES_ABR[d.getMonth()]:'';
@@ -1820,6 +1827,7 @@ function renderStudentSessions(){
       ${btn}
     </div>`;
   }).join('');
+  cont.innerHTML=cta+listHtml;
 }
 function populateSesModules(sel){
   const s=document.getElementById('ses-module');
