@@ -3052,7 +3052,7 @@ function addMsg(role,content){
   div.innerHTML=`
     <div class="msg-av ${isAI?'ai-msg':'usr-msg'}">${isAI?'AI':(currentUser?.name||'U').substring(0,2).toUpperCase()}</div>
     <div class="msg-content">
-      <div class="bubble" data-plain="${encodeURIComponent(processed.plain)}">${processed.html}</div>
+      <div class="bubble" data-plain="${encodeURIComponent(processed.plain)}" data-raw="${encodeURIComponent(content)}">${processed.html}</div>
       <div class="msg-meta">${speakBtn}<span class="msg-time">${new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'})}</span></div>
     </div>`;
   container.appendChild(div);container.scrollTop=container.scrollHeight;
@@ -3129,15 +3129,21 @@ function updateSessionStats(){}
 // ═══════════════════════
 // SPEECH
 // ═══════════════════════
+// Limpia el texto crudo del mensaje para que la voz suene igual en botón y en llamada.
+function cleanForSpeech(text){
+  return (text||'').replace(/\[[^\]]*\]/g,' ').replace(/\*\*/g,'').replace(/[#>*_`]/g,'').replace(/\n+/g,'. ').replace(/\s+/g,' ').trim();
+}
 function speakBubble(btn){
   if(synth)synth.cancel();
   if(activeSpeakBtn)activeSpeakBtn.classList.remove('playing');
   if(activeSpeakBtn===btn){activeSpeakBtn=null;return;}
-  const plain=decodeURIComponent(btn.closest('.msg-content').querySelector('.bubble').dataset.plain||'');
-  if(!plain)return;
+  const bubble=btn.closest('.msg-content').querySelector('.bubble');
+  const raw=decodeURIComponent(bubble.dataset.raw||'');
+  const spoken=cleanForSpeech(raw)||decodeURIComponent(bubble.dataset.plain||'');
+  if(!spoken)return;
   activeSpeakBtn=btn;btn.classList.add('playing');
   document.getElementById('speaking-bars').classList.add('on');
-  speakText(plain,()=>{btn.classList.remove('playing');activeSpeakBtn=null;document.getElementById('speaking-bars').classList.remove('on');});
+  speakText(spoken,()=>{btn.classList.remove('playing');activeSpeakBtn=null;document.getElementById('speaking-bars').classList.remove('on');});
 }
 
 function speakText(text,onEnd){
@@ -3246,7 +3252,7 @@ async function voiceProcess(text){
   try{addMsg('ai',reply);}catch(e){}
   chatHistory.push({role:'assistant',content:reply});
   if(!voiceActive)return;
-  const spoken=reply.replace(/\[[^\]]*\]/g,' ').replace(/\*\*/g,'').replace(/[#>*_`]/g,'').replace(/\n+/g,'. ').replace(/\s+/g,' ').trim();
+  const spoken=cleanForSpeech(reply);
   setVoiceUI('speaking','Alex está hablando…');
   speakText(spoken,()=>{ if(voiceActive)voiceListen(); });
 }
