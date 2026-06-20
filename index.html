@@ -355,7 +355,9 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
 .week-chart-title{font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:14px}
 .bars{display:flex;align-items:flex-end;gap:6px;height:72px}
 .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
-.bar-fill{width:100%;border-radius:3px 3px 0 0;background:linear-gradient(180deg,#e8eaed,rgba(255,255,255,.7));min-height:3px;transition:height .6s cubic-bezier(.34,1.56,.64,1)}
+.bar-fill{width:100%;border-radius:3px 3px 0 0;background:linear-gradient(180deg,#e8eaed,rgba(255,255,255,.7));min-height:3px;position:relative;cursor:pointer;transition:height .6s cubic-bezier(.34,1.56,.64,1)}
+.bar-tooltip{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#000;border:1px solid var(--border2);border-radius:6px;padding:4px 8px;font-size:10px;color:#fff;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s;z-index:5}
+.bar-fill:hover .bar-tooltip{opacity:1}
 .bar-lbl{font-size:10px;color:var(--muted)}
 /* PROGRESO — monocromo */
 #view-progress .pstat-num{color:var(--ink)!important}
@@ -905,7 +907,7 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
 
     <!-- DIOS QUIERE HABLARTE -->
     <div id="view-godtalks" class="view">
-      <div class="page-hdr"><div class="page-title">Dios quiere hablarte</div><div class="page-sub">Videos semanales</div></div>
+      <div class="page-hdr"><div class="page-title">Dios quiere hablarte</div><div class="page-sub">La Palabra de Dios para tu semana</div></div>
       <div id="extra-content-godtalks"></div>
     </div>
 
@@ -2997,39 +2999,49 @@ async function updateProgressStats(){
     if(elAvg)elAvg.textContent=avg+'%';
     if(elPassed)elPassed.textContent=passed;
 
-    // Barras semanales basadas en examenes reales
-    initWeekBars(results||[]);
+    // Barras semanales basadas en el tiempo de actividad real
+    initWeekBars();
   }catch(e){}
 }
 
-function initWeekBars(results=[]){
+// ── Tiempo estudiado (persistente por alumno y por día, en localStorage) ──
+function studyKey(){return 'bm_studydays_'+(currentUser?.id||'anon');}
+function dayKey(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function loadStudyDays(){try{return JSON.parse(localStorage.getItem(studyKey())||'{}')||{};}catch(e){return {};}}
+function saveStudyDays(o){try{localStorage.setItem(studyKey(),JSON.stringify(o));}catch(e){}}
+function fmtStudy(m){m=Math.max(0,Math.round(m));if(m<60)return m+' min';const h=Math.floor(m/60),mm=m%60;return mm?h+'h '+mm+'m':h+'h';}
+
+function initWeekBars(){
+  const el=document.getElementById('week-bars');if(!el)return;
   const days=['Lu','Ma','Mi','Ju','Vi','Sa','Do'];
   const now=new Date();
   const weekStart=new Date(now);
-  weekStart.setDate(now.getDate()-now.getDay()+1);
+  weekStart.setDate(now.getDate()-((now.getDay()+6)%7)); // lunes de esta semana
   weekStart.setHours(0,0,0,0);
-
-  const data=days.map((_,i)=>{
-    const day=new Date(weekStart);
-    day.setDate(weekStart.getDate()+i);
-    const next=new Date(day);next.setDate(day.getDate()+1);
-    return results.filter(r=>{
-      const d=new Date(r.completed_at);
-      return d>=day&&d<next;
-    }).length;
-  });
-
+  const store=loadStudyDays();
+  const data=days.map((_,i)=>{const day=new Date(weekStart);day.setDate(weekStart.getDate()+i);return Math.round(store[dayKey(day)]||0);});
   const max=Math.max(...data,1);
-  document.getElementById('week-bars').innerHTML=days.map((d,i)=>`
-    <div class="bar-col"><div class="bar-fill" style="height:${data[i]?Math.max(3,(data[i]/max)*64):3}px;opacity:${data[i]?1:.2}"></div><div class="bar-lbl">${d}</div></div>`).join('');
+  el.innerHTML=days.map((d,i)=>`
+    <div class="bar-col"><div class="bar-fill" style="height:${data[i]?Math.max(3,(data[i]/max)*64):3}px;opacity:${data[i]?1:.2}"><div class="bar-tooltip">${data[i]?fmtStudy(data[i]):'Sin actividad'}</div></div><div class="bar-lbl">${d}</div></div>`).join('');
 }
 function startSessionTimer(){
   sessionStart=Date.now();
-  sessionTimer=setInterval(()=>{
-    const m=Math.floor((Date.now()-sessionStart)/60000);
-    const st=document.getElementById('stat-time');if(st)st.textContent=m+'m';
-    const pt=document.getElementById('prog-time');if(pt)pt.textContent=(m/60).toFixed(1)+'h';
-  },15000);
+  let last=Date.now();
+  const tick=()=>{
+    const now=Date.now();
+    const store=loadStudyDays();
+    const tk=dayKey(new Date());
+    store[tk]=(store[tk]||0)+(now-last)/60000; // suma los minutos reales transcurridos a HOY
+    last=now;
+    saveStudyDays(store);
+    const sessionMin=Math.floor((now-sessionStart)/60000);
+    const st=document.getElementById('stat-time');if(st)st.textContent=sessionMin+'m';
+    const total=Object.values(store).reduce((s,v)=>s+v,0); // tiempo total acumulado
+    const pt=document.getElementById('prog-time');if(pt)pt.textContent=fmtStudy(total);
+    initWeekBars();
+  };
+  tick();
+  sessionTimer=setInterval(tick,15000);
 }
 </script>
 
