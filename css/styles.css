@@ -65,7 +65,7 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
 .login-shell{position:relative;z-index:1;display:grid;grid-template-columns:1.05fr .95fr;width:100%;max-width:940px;min-height:566px;background:rgba(16,16,22,.55);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.08);border-radius:24px;overflow:hidden;box-shadow:0 30px 90px -20px rgba(0,0,0,.7)}
 /* brand panel */
 .login-brand{position:relative;display:flex;flex-direction:column;justify-content:space-between;padding:48px 44px;color:#fff;background:linear-gradient(155deg,rgba(40,40,48,.5),rgba(10,10,13,.15));border-right:1px solid rgba(255,255,255,.07);overflow:hidden}
-.login-brand::before{content:'';position:absolute;inset:0;background:linear-gradient(155deg,rgba(10,10,15,.82),rgba(18,16,28,.58)),url('img2/fondo-web.jpg') center/cover no-repeat;z-index:0}
+.login-brand::before{content:'';position:absolute;inset:0;background:linear-gradient(155deg,rgba(10,10,15,.82),rgba(18,16,28,.58)),url('../img2/fondo-web.jpg') center/cover no-repeat;z-index:0}
 .login-brand>*{position:relative;z-index:1}
 .login-brand-top{display:flex;align-items:center;gap:12px}
 .login-brand-mark{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#3a3a42,#17171c);border:1px solid rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:600;font-size:20px;color:#fff;flex-shrink:0}
