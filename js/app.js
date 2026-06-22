@@ -9,12 +9,16 @@ const ANTHROPIC_KEY='TU_API_KEY_AQUI';
 // Pon USE_AI_PROXY=true cuando hayas desplegado la función y la env var en Vercel.
 const USE_AI_PROXY=true;
 const AI_PROXY='/api/chat';
-// CDN de la librería de Bunny Stream — para miniaturas automáticas de las lecciones.
-const BUNNY_CDN='vz-b429cadd-24a.b-cdn.net';
-// Miniatura efectiva de una lección: portada manual > miniatura del video de Bunny > vacío (fallback).
+// CDN de Bunny Stream por librería (cada librería tiene su propio hostname vz-xxxx.b-cdn.net).
+// Para miniaturas automáticas de las lecciones. Agregar aquí nuevas librerías si se crean.
+const BUNNY_HOSTS={'687163':'vz-b429cadd-24a.b-cdn.net'};
+// Miniatura efectiva de una lección: portada manual (URL web válida) > miniatura del video de Bunny > vacío (fallback).
 function lessonThumbUrl(l){
-  if(l&&l.thumbnail_url)return l.thumbnail_url;
-  if(l&&l.bunny_video_id)return `https://${BUNNY_CDN}/${l.bunny_video_id}/thumbnail.jpg`;
+  if(!l)return '';
+  // Solo acepta portada manual si es una URL web real (ignora rutas locales tipo file:///D:/...).
+  if(l.thumbnail_url&&/^https?:\/\//i.test(l.thumbnail_url))return l.thumbnail_url;
+  const host=BUNNY_HOSTS[l.bunny_library_id];
+  if(l.bunny_video_id&&host)return `https://${host}/${l.bunny_video_id}/thumbnail.jpg`;
   return '';
 }
 async function askAI(maxTokens,extraSystem){
