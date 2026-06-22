@@ -9,6 +9,14 @@ const ANTHROPIC_KEY='TU_API_KEY_AQUI';
 // Pon USE_AI_PROXY=true cuando hayas desplegado la función y la env var en Vercel.
 const USE_AI_PROXY=true;
 const AI_PROXY='/api/chat';
+// CDN de la librería de Bunny Stream — para miniaturas automáticas de las lecciones.
+const BUNNY_CDN='vz-b429cadd-24a.b-cdn.net';
+// Miniatura efectiva de una lección: portada manual > miniatura del video de Bunny > vacío (fallback).
+function lessonThumbUrl(l){
+  if(l&&l.thumbnail_url)return l.thumbnail_url;
+  if(l&&l.bunny_video_id)return `https://${BUNNY_CDN}/${l.bunny_video_id}/thumbnail.jpg`;
+  return '';
+}
 async function askAI(maxTokens,extraSystem){
   let token=null;try{const{data}=await sb.auth.getSession();token=data?.session?.access_token||null;}catch(e){}
   const sys=(typeof SYSTEM_PROMPT!=='undefined'?SYSTEM_PROMPT:'')+(extraSystem?('\n\n'+extraSystem):'');
@@ -826,8 +834,9 @@ async function openModuleDetail(moduleId){
     <div class="meta-item"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M15 10l4.553-2.276A1 1 0 0121 8.723v6.554a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg>${lessons.length} lección${lessons.length!==1?'es':''}</div>`;
   document.getElementById('lessons-count-label').textContent=`Lecciones (${lessons.length})`;
   document.getElementById('lessons-grid').innerHTML=lessons.length?lessons.map((l,i)=>{
-    const thumbHtml=l.thumbnail_url
-      ?`<img src="${l.thumbnail_url}" onerror="this.style.display='none';this.nextSibling.style.display='flex'" style="width:100%;height:100%;object-fit:cover"><div class="lesson-thumb-fallback" style="display:none"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M15 10l4.553-2.276A1 1 0 0121 8.723v6.554a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg></div>`
+    const thumbSrc=lessonThumbUrl(l);
+    const thumbHtml=thumbSrc
+      ?`<img src="${thumbSrc}" onerror="this.style.display='none';this.nextSibling.style.display='flex'" style="width:100%;height:100%;object-fit:cover"><div class="lesson-thumb-fallback" style="display:none"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M15 10l4.553-2.276A1 1 0 0121 8.723v6.554a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg></div>`
       :`<div class="lesson-thumb-fallback"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M15 10l4.553-2.276A1 1 0 0121 8.723v6.554a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg></div>`;
     return `<div class="lesson-row" onclick="openLesson(${l.id})">
       <div class="lesson-thumb">${thumbHtml}<div class="lesson-play-overlay"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>
