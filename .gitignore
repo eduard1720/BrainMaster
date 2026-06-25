@@ -7,3 +7,4 @@ ingles_web/
 *.pdf
 
 .vercel
+.env*

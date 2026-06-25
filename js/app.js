@@ -9,6 +9,11 @@ const ANTHROPIC_KEY='TU_API_KEY_AQUI';
 // Pon USE_AI_PROXY=true cuando hayas desplegado la función y la env var en Vercel.
 const USE_AI_PROXY=true;
 const AI_PROXY='/api/chat';
+// Versión vigente de la Política de Privacidad y Términos de Uso.
+// Si el documento legal cambia, sube esta versión: a todos los alumnos
+// se les volverá a pedir aceptar (y queda un nuevo registro de respaldo).
+const TERMS_VERSION='1.0-2026-06-25';
+const TERMS_PROXY='/api/accept-terms';
 // CDN de Bunny Stream por librería (cada librería tiene su propio hostname vz-xxxx.b-cdn.net).
 // Para miniaturas automáticas de las lecciones. Agregar aquí nuevas librerías si se crean.
 const BUNNY_HOSTS={'687163':'vz-b429cadd-24a.b-cdn.net'};
@@ -192,9 +197,87 @@ async function doLogin(){
     document.getElementById('change-pass-modal').classList.remove('hidden');
     return;
   }
-  launchApp();
+  await gateTermsThenLaunch();
 }
 async function getProfile(uid){const{data}=await sb.from('profiles').select('*').eq('id',uid).single();return data;}
+
+// ═══════════════════════
+// TÉRMINOS Y CONDICIONES (aceptación legal con respaldo)
+// ═══════════════════════
+let _termsScrolled=false;
+// Decide si mostrar el documento legal o entrar directo a la app.
+async function gateTermsThenLaunch(){
+  // Los administradores no requieren aceptar la política de datos del alumno.
+  if(isAdmin){launchApp();return;}
+  let accepted=false;
+  try{
+    const{data}=await sb.from('terms_acceptances').select('id').eq('user_id',currentUser.id).eq('terms_version',TERMS_VERSION).limit(1);
+    accepted=!!(data&&data.length);
+  }catch(e){accepted=false;}
+  if(accepted){launchApp();return;}
+  showTermsModal();
+}
+function showTermsModal(){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='none';
+  const doc=document.getElementById('terms-doc');
+  const cb=document.getElementById('terms-checkbox');
+  document.getElementById('terms-err').style.display='none';
+  if(cb)cb.checked=false;
+  _termsScrolled=false;
+  document.getElementById('terms-modal').classList.remove('hidden');
+  if(doc)doc.scrollTop=0;
+  // Si el documento entra completo sin scroll, se considera ya leído hasta el final.
+  setTimeout(()=>{if(doc&&doc.scrollHeight<=doc.clientHeight+8)_termsScrolled=true;updateTermsBtn();},80);
+  updateTermsBtn();
+}
+function onTermsScroll(el){
+  if(el.scrollTop+el.clientHeight>=el.scrollHeight-40){_termsScrolled=true;updateTermsBtn();}
+}
+function updateTermsBtn(){
+  const cb=document.getElementById('terms-checkbox');
+  const btn=document.getElementById('terms-accept-btn');
+  if(!cb||!btn)return;
+  btn.disabled=!(cb.checked&&_termsScrolled);
+}
+async function acceptTerms(){
+  const btn=document.getElementById('terms-accept-btn');
+  const err=document.getElementById('terms-err');
+  err.style.display='none';
+  btn.disabled=true;btn.textContent='Registrando...';
+  let ok=false;
+  // 1) Vía preferida: endpoint serverless que captura la IP del lado servidor y escribe con service role.
+  try{
+    let token=null;try{const{data}=await sb.auth.getSession();token=data?.session?.access_token||null;}catch(e){}
+    const res=await fetch(TERMS_PROXY,{method:'POST',headers:{'Content-Type':'application/json',...(token?{'Authorization':'Bearer '+token}:{})},
+      body:JSON.stringify({version:TERMS_VERSION,full_name:currentUser?.name||''})});
+    ok=res.ok;
+  }catch(e){ok=false;}
+  // 2) Respaldo: si el endpoint no está disponible, registrar la aceptación desde el cliente.
+  if(!ok){
+    try{
+      const{error}=await sb.from('terms_acceptances').insert({
+        user_id:currentUser.id,email:currentUser.email,full_name:currentUser?.name||'',
+        terms_version:TERMS_VERSION,user_agent:navigator.userAgent
+      });
+      ok=!error;
+    }catch(e){ok=false;}
+  }
+  btn.textContent='Aceptar y continuar';
+  if(!ok){err.style.display='block';btn.disabled=false;return;}
+  document.getElementById('terms-modal').classList.add('hidden');
+  launchApp();
+}
+async function declineTerms(){
+  document.getElementById('terms-modal').classList.add('hidden');
+  const cb=document.getElementById('terms-checkbox');if(cb)cb.checked=false;
+  try{await sb.auth.signOut();}catch(e){}
+  currentUser=null;isAdmin=false;isSuper=false;
+  document.getElementById('app').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+  const p=document.getElementById('inp-pass');if(p)p.value='';
+  toast('Debes aceptar la política de privacidad para usar la plataforma','error');
+}
 
 function resetNavTabs(){
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active','hidden'));
@@ -1770,7 +1853,7 @@ async function submitNewPassword(){
   await sb.from('profiles').update({must_change_password:false}).eq('id',currentUser.id);
   document.getElementById('change-pass-modal').classList.add('hidden');
   toast('Contraseña establecida correctamente','success');
-  launchApp();
+  await gateTermsThenLaunch();
 }
 
 // ═══════════════════════
