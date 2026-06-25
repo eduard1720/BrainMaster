@@ -434,10 +434,9 @@ async function loadModules(){
   allExams=exams||[];
   if(!isAdmin){
     const{data:acc}=await sb.from('module_access').select('*').eq('student_id',currentUser.id);
-    if(!acc?.length){
-      const pub=allModules.filter(m=>m.is_published);
-      userAccess=pub.slice(0,4).map(m=>({module_id:m.id,unlocked:true,progress:0}));
-    }else{userAccess=acc;}
+    // Sin desbloqueos por defecto: el alumno solo ve los módulos que el admin
+    // le haya habilitado explícitamente. Asignar un grupo NO desbloquea clases.
+    userAccess=acc||[];
     // Cargar lecciones completadas
     try{
       const{data:lp}=await sb.from('lesson_progress').select('lesson_id').eq('student_id',currentUser.id);
