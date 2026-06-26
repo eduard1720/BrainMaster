@@ -237,7 +237,7 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
 .no-video-msg svg{width:52px;height:52px;stroke:var(--muted);fill:none;opacity:.3}
 .watermark-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:5}
 .watermark-text{font-size:13px;font-weight:500;color:rgba(255,255,255,.06);transform:rotate(-25deg);letter-spacing:2px;user-select:none;white-space:nowrap}
-.lesson-info{padding:18px 22px;display:flex;flex-direction:column;gap:12px}
+.lesson-extras{padding:18px 22px;display:flex;flex-direction:column;gap:12px}
 .lesson-tabs{display:flex;gap:8px}
 .lesson-tab{flex:1;padding:10px 14px;font-size:13px;font-weight:600;color:var(--ink2);background:var(--surface);border:0.5px solid var(--border);border-radius:10px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .15s,color .15s,border-color .15s}
 .lesson-tab:hover{border-color:var(--border2);color:var(--ink)}

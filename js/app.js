@@ -1047,6 +1047,15 @@ function matExtOf(m){
   const e=(m.file_name||'').split('.').pop().toLowerCase();
   return e&&e.length<=5?e:(m.file_type||'doc');
 }
+// Convierte URLs (http/https) del texto en enlaces clicables, escapando primero el HTML.
+function linkify(text){
+  return esc(text).replace(/(https?:\/\/[^\s<]+)/g,function(u){
+    let tail='';
+    const m=u.match(/[.,;:!?]+$/);
+    if(m){tail=m[0];u=u.slice(0,-tail.length);}
+    return '<a href="'+u+'" target="_blank" rel="noopener" style="color:var(--green);text-decoration:underline">'+u+'</a>'+tail;
+  });
+}
 function matColorOf(ext){
   const c={pdf:'#e24b4a',doc:'#378add',docx:'#378add',xls:'#3ddc97',xlsx:'#3ddc97',csv:'#3ddc97',ppt:'#e89a3c',pptx:'#e89a3c',png:'#a78bfa',jpg:'#a78bfa',jpeg:'#a78bfa',gif:'#a78bfa',webp:'#a78bfa',zip:'#9aa0aa',rar:'#9aa0aa',link:'#3ddc97'};
   return c[ext]||'#6b7280';
@@ -1063,7 +1072,7 @@ async function renderLessonExtras(l){
   const info=document.getElementById('lesson-info');
   const descText=document.getElementById('lesson-desc-text');
   const hasDesc=!!(l.description&&l.description.trim());
-  descText.textContent=hasDesc?l.description:'';
+  if(hasDesc)descText.innerHTML=linkify(l.description);else descText.textContent='';
   const matList=document.getElementById('lesson-mat-list');
   matList.innerHTML='';
   info.style.display='flex';
