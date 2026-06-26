@@ -503,7 +503,7 @@ function renderAdminMaterials(){
 function renderStudentMaterials(){
   const cont=document.getElementById('materials-student-content');if(!cont)return;
   const unlocked=new Set(userAccess.filter(a=>a.unlocked).map(a=>a.module_id));
-  const visible=allMaterials.filter(m=>unlocked.has(m.module_id)&&targetGroupOk(m.target_group));
+  const visible=allMaterials.filter(m=>!m.lesson_id&&unlocked.has(m.module_id)&&targetGroupOk(m.target_group));
   if(!visible.length){cont.innerHTML='<div class="card"><p class="fs-13 text-muted">Aún no hay materiales disponibles para tus módulos.</p></div>';return;}
   let html='';
   allModules.forEach(mod=>{
@@ -535,7 +535,7 @@ function materialCardHtml(m){
 }
 function renderModuleMaterials(moduleId){
   const sec=document.getElementById('materials-section');if(!sec)return;
-  const mats=allMaterials.filter(m=>m.module_id===moduleId&&(isAdmin||targetGroupOk(m.target_group)));
+  const mats=allMaterials.filter(m=>!m.lesson_id&&m.module_id===moduleId&&(isAdmin||targetGroupOk(m.target_group)));
   if(!mats.length){sec.innerHTML='';return;}
   sec.innerHTML=`<div class="lessons-section-title" style="margin-top:8px"><span>Materiales (${mats.length})</span></div>`
     +`<div class="mat-mini-list">${mats.map(m=>{
@@ -1021,6 +1021,7 @@ function openLesson(lessonId){
     iframe.allowFullscreen=true;iframe.style.cssText='width:100%;height:100%;border:none;';
     wrap.insertBefore(iframe,wrap.querySelector('.watermark-overlay'));
   }else{noVid.style.display='flex';}
+  renderLessonExtras(l);
   const moduleLessons=allLessons.filter(ls=>ls.module_id===l.module_id);
   document.getElementById('player-sidebar-hdr').textContent=m?m.title:'Lecciones';
   document.getElementById('player-sidebar-list').innerHTML=moduleLessons.map((ls,i)=>{
@@ -1038,6 +1039,56 @@ function openLesson(lessonId){
   showView('player');
   // Marcar la lección como completada
   markLessonComplete(lessonId, l.module_id);
+}
+
+// ── Descripción y material debajo del video ──
+function matExtOf(m){
+  if(m.kind==='link')return 'link';
+  const e=(m.file_name||'').split('.').pop().toLowerCase();
+  return e&&e.length<=5?e:(m.file_type||'doc');
+}
+function matColorOf(ext){
+  const c={pdf:'#e24b4a',doc:'#378add',docx:'#378add',xls:'#3ddc97',xlsx:'#3ddc97',csv:'#3ddc97',ppt:'#e89a3c',pptx:'#e89a3c',png:'#a78bfa',jpg:'#a78bfa',jpeg:'#a78bfa',gif:'#a78bfa',webp:'#a78bfa',zip:'#9aa0aa',rar:'#9aa0aa',link:'#3ddc97'};
+  return c[ext]||'#6b7280';
+}
+function switchLessonTab(t){
+  const d=t==='desc';
+  document.getElementById('ltab-desc').classList.toggle('active',d);
+  document.getElementById('ltab-mat').classList.toggle('active',!d);
+  document.getElementById('lesson-desc-panel').style.display=d?'block':'none';
+  document.getElementById('lesson-mat-panel').style.display=d?'none':'block';
+}
+async function renderLessonExtras(l){
+  switchLessonTab('desc');
+  const info=document.getElementById('lesson-info');
+  const descText=document.getElementById('lesson-desc-text');
+  const hasDesc=!!(l.description&&l.description.trim());
+  descText.textContent=hasDesc?l.description:'';
+  const matList=document.getElementById('lesson-mat-list');
+  matList.innerHTML='';
+  info.style.display='flex';
+  let hasMat=false;
+  try{
+    const{data}=await sb.from('materials').select('*').eq('lesson_id',l.id).order('order_index');
+    if(!data||!data.length){if(!hasDesc)info.style.display='none';return;}
+    hasMat=true;
+    matList.innerHTML=data.map(m=>{
+      const ext=matExtOf(m);
+      const badge=ext==='link'?'WEB':ext.toUpperCase().slice(0,4);
+      const open=m.kind==='flashcards'?`onclick="openFlashcards(${m.id})"`:'';
+      const tag=m.kind==='flashcards'?'div':'a';
+      const href=m.kind==='flashcards'?'':`href="${esc(m.file_url||'#')}" target="_blank" rel="noopener"`;
+      const meta=m.kind==='flashcards'?((m.cards?m.cards.length:0)+' notas'):(m.kind==='link'?'Enlace':badge);
+      const dl=m.kind==='flashcards'
+        ?'<svg class="lmat-dl" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>'
+        :'<svg class="lmat-dl" viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>';
+      return `<${tag} class="lmat-row clickable" ${href} ${open}>
+        <span class="lmat-ext" style="background:${matColorOf(ext)}">${badge}</span>
+        <span class="lmat-info"><span class="lmat-name">${esc(m.title||m.file_name||'Material')}</span><span class="lmat-meta">${meta}</span></span>
+        ${dl}
+      </${tag}>`;
+    }).join('');
+  }catch(e){if(!hasDesc&&!hasMat)info.style.display='none';}
 }
 
 // ═══════════════════════
@@ -1213,6 +1264,9 @@ function addLessonRow(lesson=null){
       <div class="field"><input class="input" placeholder="Bunny Library ID" value="${lesson?.bunny_library_id||''}"></div>
       <div class="field"><input class="input" placeholder="Bunny Video ID" value="${lesson?.bunny_video_id||''}"></div>
     </div>
+    <div style="margin-top:8px">
+      <button class="btn btn-ghost btn-xs" onclick="openLessonMatModal(${lesson?.id||'null'},${lesson?.module_id||'null'})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="13" height="13" style="margin-right:5px;vertical-align:-2px"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>Material${lesson?.id?'':' (guarda primero)'}</button>
+    </div>
     <input type="hidden" value="${lesson?.id||''}">`;
   builder.appendChild(div);
 }
@@ -1256,6 +1310,84 @@ async function deleteModule(id){
 async function togglePublish(id,current){
   await sb.from('modules').update({is_published:!current}).eq('id',id);
   toast(current?'Módulo despublicado':'Módulo publicado','success');await loadAdminData();
+}
+
+// ── Material por lección (admin) ──
+let _lmLessonId=null,_lmModuleId=null;
+async function openLessonMatModal(lessonId,moduleId){
+  if(!lessonId){toast('Guarda el módulo primero para añadir material a esta lección','error');return;}
+  _lmLessonId=lessonId;_lmModuleId=moduleId;
+  document.getElementById('lm-lesson-id').value=lessonId;
+  document.getElementById('lm-module-id').value=moduleId||'';
+  document.getElementById('lm-kind').value='file';
+  document.getElementById('lm-title').value='';
+  document.getElementById('lm-file').value='';
+  document.getElementById('lm-link-url').value='';
+  document.getElementById('lm-status').textContent='';
+  toggleLessonMatKind();
+  await renderLessonMatList(lessonId);
+  document.getElementById('lesson-mat-modal').classList.remove('hidden');
+}
+function closeLessonMatModal(){document.getElementById('lesson-mat-modal').classList.add('hidden');}
+function toggleLessonMatKind(){
+  const k=document.getElementById('lm-kind').value;
+  document.getElementById('lm-file-section').style.display=k==='file'?'block':'none';
+  document.getElementById('lm-link-section').style.display=k==='link'?'block':'none';
+}
+async function renderLessonMatList(lessonId){
+  const cont=document.getElementById('lm-current-list');
+  cont.innerHTML='<div class="fs-13 text-muted">Cargando…</div>';
+  const{data}=await sb.from('materials').select('*').eq('lesson_id',lessonId).order('order_index');
+  if(!data||!data.length){cont.innerHTML='<div class="fs-13 text-muted">Aún no hay material en esta lección.</div>';return;}
+  cont.innerHTML=data.map(m=>{
+    const ext=matExtOf(m);
+    const badge=ext==='link'?'WEB':ext.toUpperCase().slice(0,4);
+    return `<div class="lmat-row">
+      <span class="lmat-ext" style="background:${matColorOf(ext)}">${badge}</span>
+      <span class="lmat-info"><span class="lmat-name">${esc(m.title||m.file_name||'Material')}</span><span class="lmat-meta">${m.kind==='link'?'Enlace':badge}</span></span>
+      <button class="btn btn-danger btn-xs" onclick="deleteLessonMat(${m.id})">Eliminar</button>
+    </div>`;
+  }).join('');
+}
+async function addLessonMat(){
+  const lessonId=_lmLessonId,moduleId=_lmModuleId;
+  if(!lessonId)return;
+  const kind=document.getElementById('lm-kind').value;
+  const btn=document.getElementById('lm-add-btn');const st=document.getElementById('lm-status');
+  const payload={lesson_id:parseInt(lessonId),module_id:moduleId?parseInt(moduleId):null,kind,description:'',target_group:null,cards:null,order_index:Date.now()};
+  if(kind==='link'){
+    let url=document.getElementById('lm-link-url').value.trim();
+    if(!url){toast('Escribe la URL del enlace','error');return;}
+    if(!/^https?:\/\//i.test(url))url='https://'+url;
+    payload.file_url=url;payload.file_name=null;payload.file_type='link';
+    payload.title=document.getElementById('lm-title').value.trim()||url;
+  }else{
+    const file=document.getElementById('lm-file').files[0];
+    if(!file){toast('Selecciona un archivo','error');return;}
+    btn.disabled=true;st.textContent='Subiendo archivo...';
+    const path=Date.now()+'_'+file.name.replace(/[^\w.\-]/g,'_');
+    const{error:upErr}=await sb.storage.from('materials').upload(path,file,{upsert:true});
+    if(upErr){btn.disabled=false;st.textContent='';toast('Error al subir: '+upErr.message,'error');return;}
+    const{data:pub}=sb.storage.from('materials').getPublicUrl(path);
+    payload.file_url=pub.publicUrl;payload.file_name=file.name;payload.file_type=(file.name.split('.').pop()||'').toLowerCase();
+    payload.title=document.getElementById('lm-title').value.trim()||file.name;
+  }
+  const{error}=await sb.from('materials').insert(payload);
+  btn.disabled=false;st.textContent='';
+  if(error){toast('Error: '+error.message,'error');return;}
+  toast('Material añadido','success');
+  document.getElementById('lm-title').value='';
+  document.getElementById('lm-file').value='';
+  document.getElementById('lm-link-url').value='';
+  await renderLessonMatList(lessonId);
+  loadMaterials();
+}
+async function deleteLessonMat(id){
+  if(!confirm('¿Eliminar este material?'))return;
+  await sb.from('materials').delete().eq('id',id);
+  toast('Material eliminado','success');
+  await renderLessonMatList(_lmLessonId);
+  loadMaterials();
 }
 
 function renderAdminModules(){
