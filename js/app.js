@@ -186,6 +186,13 @@ async function doLogin(){
   isAdmin=profile?.role==='admin';
   isSuper=(data.user.email||'').toLowerCase()===SUPER_ADMIN_EMAIL.toLowerCase();
   if(isSuper)isAdmin=true;
+  // Alumno bloqueado por el administrador: no se le permite entrar.
+  if(!isAdmin&&profile?.blocked){
+    await sb.auth.signOut();
+    currentUser=null;
+    showBlockedScreen();
+    return;
+  }
   try{sb.from('profiles').update({last_access:new Date().toISOString()}).eq('id',data.user.id).then(()=>{},()=>{});}catch(e){}
   if(profile?.must_change_password){
     document.getElementById('login-screen').style.display='none';
@@ -200,6 +207,14 @@ async function doLogin(){
   await gateTermsThenLaunch();
 }
 async function getProfile(uid){const{data}=await sb.from('profiles').select('*').eq('id',uid).single();return data;}
+
+// Aviso al alumno cuyo perfil fue bloqueado por el administrador.
+function showBlockedScreen(){
+  const msg='Hola Rubén, mi perfil fue bloqueado y quiero reactivar mi acceso a Brain Master English';
+  const wa='https://wa.me/'+SUPPORT_WHATSAPP.replace(/[^0-9]/g,'')+'?text='+encodeURIComponent(msg);
+  const btn=document.getElementById('blocked-wa-btn');if(btn)btn.href=wa;
+  document.getElementById('blocked-modal').classList.remove('hidden');
+}
 
 // ═══════════════════════
 // TÉRMINOS Y CONDICIONES (aceptación legal con respaldo)
@@ -1902,6 +1917,8 @@ try{const res=await sb.from('module_access').select('*').eq('student_id',student
   pb.className='btn '+(p30?'btn-success':'btn-ghost')+' btn-sm';
   pb.textContent=p30?'Con acceso':'Sin acceso';
   pb.onclick=()=>togglePlan30(studentId,p30,pb);
+  renderAccessState(studentId,!!s.blocked);
+  document.getElementById('sp-resend-btn').onclick=()=>resendAccess(studentId,s.email);
   document.getElementById('sp-delete-btn').onclick=()=>deleteStudentFromProfile(studentId,s.full_name||s.email);
   document.getElementById('sp-save-group-btn').onclick=async()=>{
     const ng=document.getElementById('sp-group-select').value;
@@ -1959,6 +1976,36 @@ async function togglePlan30(studentId,current,btn){
   btn.textContent=nv?'Con acceso':'Sin acceso';
   btn.onclick=()=>togglePlan30(studentId,nv,btn);
   toast(nv?'Acceso premium concedido':'Acceso premium retirado','success');
+}
+// Estado de acceso del alumno en su perfil (bloqueado o activo).
+function renderAccessState(studentId,blocked){
+  const st=document.getElementById('sp-access-status');
+  const bBtn=document.getElementById('sp-block-btn');
+  const uBtn=document.getElementById('sp-unblock-btn');
+  if(st)st.innerHTML=blocked?'<span class="badge badge-red">Bloqueado</span> No puede iniciar sesión':'<span class="badge badge-green">Activo</span> Acceso normal';
+  if(bBtn){bBtn.disabled=blocked;bBtn.onclick=()=>toggleBlock(studentId,true);}
+  if(uBtn){uBtn.disabled=!blocked;uBtn.onclick=()=>toggleBlock(studentId,false);}
+}
+async function toggleBlock(studentId,block){
+  const{error}=await sb.from('profiles').update({blocked:block}).eq('id',studentId);
+  if(error){toast('Error: '+error.message,'error');return;}
+  const st=allStudentsCache.find(x=>x.id===studentId);if(st)st.blocked=block;
+  renderAccessState(studentId,block);
+  toast(block?'Acceso bloqueado':'Acceso desbloqueado','success');
+}
+async function resendAccess(studentId,email){
+  if(!confirm(`¿Reenviar el acceso a ${email}? Su contraseña se restablecerá a "estudio123".`))return;
+  const btn=document.getElementById('sp-resend-btn');
+  btn.disabled=true;const prev=btn.textContent;btn.textContent='Enviando...';
+  let token=null;try{const{data}=await sb.auth.getSession();token=data?.session?.access_token||null;}catch(e){}
+  try{
+    const res=await fetch('/api/student-admin',{method:'POST',headers:{'Content-Type':'application/json',...(token?{'Authorization':'Bearer '+token}:{})},
+      body:JSON.stringify({action:'reset',student_id:studentId})});
+    const d=await res.json().catch(()=>({}));
+    btn.disabled=false;btn.textContent=prev;
+    if(!res.ok){toast('Error: '+(d.error||'no se pudo reenviar'),'error');return;}
+    toast(d.emailSent?'Acceso reenviado: contraseña estudio123 y correo enviado':'Contraseña restablecida a estudio123 (correo no enviado)','success');
+  }catch(e){btn.disabled=false;btn.textContent=prev;toast('No se pudo reenviar el acceso','error');}
 }
 async function toggleAccessFromProfile(studentId,moduleId,currentState,btn){
   let ex=null;

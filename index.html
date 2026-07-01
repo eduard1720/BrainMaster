@@ -623,6 +623,19 @@
   </div>
 </div>
 
+<!-- MODAL PERFIL BLOQUEADO (alumno sin acceso) -->
+<div id="blocked-modal" class="modal-bg hidden">
+  <div class="modal-box" style="max-width:420px;text-align:center">
+    <div style="width:56px;height:56px;border-radius:50%;background:rgba(255,69,96,.12);display:flex;align-items:center;justify-content:center;margin:6px auto 16px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#ff4560" stroke-width="2" style="width:28px;height:28px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+    </div>
+    <div class="modal-title" style="margin-bottom:8px">Tu perfil fue bloqueado</div>
+    <p class="fs-12 text-muted" style="margin-bottom:22px;line-height:1.6">Tu acceso a la plataforma está suspendido temporalmente. Para reactivarlo, comunícate con Rubén.</p>
+    <a class="btn btn-wa w100" id="blocked-wa-btn" href="#" target="_blank" rel="noopener" style="justify-content:center;margin-bottom:10px">Escribir a Rubén por WhatsApp</a>
+    <button class="btn btn-ghost w100" onclick="document.getElementById('blocked-modal').classList.add('hidden')">Cerrar</button>
+  </div>
+</div>
+
 <!-- MODAL TÉRMINOS Y CONDICIONES (aceptación legal en el primer ingreso) -->
 <div id="terms-modal" class="modal-bg hidden">
   <div class="modal-box lg">
@@ -739,6 +752,15 @@
       <div><div class="fs-13 fw-500">Plan de 30 días</div><div class="fs-11 text-muted">Sección premium de marketing</div></div>
       <button class="btn btn-ghost btn-sm" id="sp-plan30-btn">—</button>
     </div>
+    <div style="font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:10px">Acceso del alumno</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;background:var(--bg2);border-radius:var(--r-sm);border:0.5px solid var(--border);margin-bottom:20px;flex-wrap:wrap">
+      <div><div class="fs-13 fw-500">Estado de la cuenta</div><div id="sp-access-status" class="fs-11 text-muted">—</div></div>
+      <div class="flex gap6" style="flex-wrap:wrap">
+        <button class="btn btn-danger btn-sm" id="sp-block-btn">Bloquear acceso</button>
+        <button class="btn btn-success btn-sm" id="sp-unblock-btn">Desbloquear acceso</button>
+        <button class="btn btn-primary btn-sm" id="sp-resend-btn">Reenviar acceso</button>
+      </div>
+    </div>
     <div style="display:flex;justify-content:space-between;align-items:center;padding-top:14px;border-top:0.5px solid var(--border)">
       <button class="btn btn-danger" id="sp-delete-btn">Eliminar alumno</button>
       <div class="flex gap8"><select class="input" id="sp-group-select" style="width:150px"></select><button class="btn btn-primary" id="sp-save-group-btn">Guardar grupo</button></div>
@@ -764,6 +786,6 @@
 
 <div id="toast"></div>
 
-<script src="js/app.js?v=20260701"></script>
+<script src="js/app.js?v=20260701b"></script>
 </body>
 </html>
