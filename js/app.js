@@ -1295,14 +1295,26 @@ async function saveModule(){
   if(editId){const{error}=await sb.from('modules').update(payload).eq('id',editId);if(error){toast('Error: '+error.message,'error');return;}}
   else{const{data,error}=await sb.from('modules').insert(payload).select().single();if(error){toast('Error: '+error.message,'error');return;}moduleId=data.id;}
   const lessonRows=document.getElementById('lessons-builder').querySelectorAll('.question-builder-item');
+  const keepIds=[];
   for(let i=0;i<lessonRows.length;i++){
     const row=lessonRows[i];
     const inputs=row.querySelectorAll('input.input');
     const lessonId=row.querySelector('input[type=hidden]').value;
+    if(lessonId)keepIds.push(parseInt(lessonId));
     const lPayload={module_id:parseInt(moduleId),title:inputs[0].value.trim(),description:inputs[1].value.trim(),thumbnail_url:inputs[2].value.trim(),bunny_library_id:inputs[3].value.trim(),bunny_video_id:inputs[4].value.trim(),order_index:i+1};
     if(!lPayload.title)continue;
     if(lessonId)await sb.from('lessons').update(lPayload).eq('id',lessonId);
     else await sb.from('lessons').insert(lPayload);
+  }
+  // Borrar de la BD las lecciones que se quitaron en el editor (el botón Eliminar solo las quitaba de la pantalla)
+  if(editId){
+    const{data:dbLessons}=await sb.from('lessons').select('id').eq('module_id',moduleId);
+    for(const l of (dbLessons||[])){
+      if(!keepIds.includes(l.id)){
+        await sb.from('materials').delete().eq('lesson_id',l.id);
+        await sb.from('lessons').delete().eq('id',l.id);
+      }
+    }
   }
   toast(editId?'Módulo actualizado':'Módulo creado','success');
   closeModuleModal();await loadAdminData();
