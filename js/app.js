@@ -150,6 +150,19 @@ document.getElementById('inp-pass').addEventListener('keydown',e=>{if(e.key==='E
 document.getElementById('inp-email').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 function fillLogin(email,pass){document.getElementById('inp-email').value=email;document.getElementById('inp-pass').value=pass;}
 
+// Mostrar/ocultar contraseña (login y donde se reutilice)
+const _EYE_SVG='<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+const _EYE_OFF_SVG='<svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+function togglePass(id,btn){
+  const inp=document.getElementById(id);if(!inp)return;
+  const reveal=inp.type==='password';
+  inp.type=reveal?'text':'password';
+  btn.classList.toggle('is-on',reveal);
+  btn.setAttribute('aria-pressed',reveal?'true':'false');
+  btn.setAttribute('aria-label',reveal?'Ocultar contraseña':'Mostrar contraseña');
+  btn.innerHTML=reveal?_EYE_OFF_SVG:_EYE_SVG;
+}
+
 async function forgotPassword(){
   const email=document.getElementById('inp-email').value.trim();
   if(!email){toast('Escribe tu correo arriba y vuelve a tocar el enlace','error');document.getElementById('inp-email').focus();return;}
@@ -506,7 +519,7 @@ function renderAdminMaterials(){
     const tipo=isFc?'<span class="badge badge-accent">Notas</span>':isLink?'<span class="badge badge-blue">Enlace</span>':'<span class="badge badge-muted">'+((m.file_type||'archivo').toUpperCase())+'</span>';
     const cont=isFc?((m.cards?m.cards.length:0)+' notas'):(m.file_url?`<a href="${esc(m.file_url)}" target="_blank" class="text-accent">${isLink?'Abrir enlace':'Ver archivo'}</a>`:'—');
     return `<tr>
-      <td><span class="fw-500">${esc(m.title)}</span>${m.description?`<div class="fs-11 text-muted">${esc(m.description)}</div>`:''}</td>
+      <td><span class="fw-500">${esc(m.title)}</span>${m.description?`<div class="fs-11 text-muted">${esc(descSnippet(m.description))}</div>`:''}</td>
       <td>${tipo}</td>
       <td class="fs-12 text-muted">${moduleName(m.module_id)}${m.target_group?`<div style="margin-top:4px">${groupBadges(m.target_group)}</div>`:''}</td>
       <td class="fs-12 text-muted">${cont}</td>
@@ -899,7 +912,7 @@ function renderModulesGrid(){
       <div class="module-body">
         <div class="module-num">Módulo ${m.order_index||i+1}</div>
         <div class="module-title">${esc(m.title)}</div>
-        ${m.description?`<div class="module-desc">${esc(m.description)}</div>`:''}
+        ${m.description?`<div class="module-desc">${esc(descSnippet(m.description))}</div>`:''}
         <div class="module-footer">
           <div class="prog-wrap"><div class="prog-fill" style="width:${prog}%"></div></div>
           <div class="prog-pct">${prog}%</div>
@@ -930,7 +943,7 @@ async function openModuleDetail(moduleId){
     img.onerror=()=>{img.remove();fallback.style.display='flex';};fallback.style.display='none';hero.insertBefore(img,fallback);
   }else{fallback.style.display='flex';}
   document.getElementById('detail-title').textContent=m.title;
-  document.getElementById('detail-desc').textContent=m.description||'';
+  document.getElementById('detail-desc').innerHTML=renderDesc(m.description||'');
   document.getElementById('detail-meta').innerHTML=`
     <div class="meta-item"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M15 10l4.553-2.276A1 1 0 0121 8.723v6.554a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg>${lessons.length} lección${lessons.length!==1?'es':''}</div>`;
   document.getElementById('lessons-count-label').textContent=`Lecciones (${lessons.length})`;
@@ -944,7 +957,7 @@ async function openModuleDetail(moduleId){
       <div class="lesson-info">
         <div class="lesson-num">Lección ${l.order_index||i+1}</div>
         <div class="lesson-title">${esc(l.title)}</div>
-        ${l.description?`<div class="lesson-desc">${esc(l.description)}</div>`:''}
+        ${l.description?`<div class="lesson-desc">${esc(descSnippet(l.description))}</div>`:''}
       </div>
       <div style="display:flex;align-items:center;flex-shrink:0">
         <svg viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5" width="14" height="14"><path d="M9 18l6-6-6-6"/></svg>
@@ -1071,6 +1084,109 @@ function linkify(text){
     return '<a href="'+u+'" target="_blank" rel="noopener" style="color:var(--green);text-decoration:underline">'+u+'</a>'+tail;
   });
 }
+// ── Descripciones enriquecidas (HTML) ──
+// ¿el texto contiene HTML? (para distinguir descripciones nuevas de las viejas en texto plano)
+function isHTMLDesc(s){return /<\/?[a-z][\s\S]*>/i.test(s||'');}
+// Render seguro para el alumno: HTML sanitizado, o texto plano con enlaces clicables (compat. hacia atrás).
+function renderDesc(text){
+  if(!text)return '';
+  if(typeof DOMPurify!=='undefined'&&isHTMLDesc(text))return DOMPurify.sanitize(text,{ADD_ATTR:['target','rel']});
+  return linkify(text).replace(/\n/g,'<br>');
+}
+// Texto plano a partir de HTML (para tarjetas/listas compactas).
+function descToText(html){
+  if(!html)return '';
+  const d=document.createElement('div');d.innerHTML=html;
+  return (d.textContent||d.innerText||'').replace(/\s+/g,' ').trim();
+}
+function descSnippet(html,n=140){const t=descToText(html);return t.length>n?t.slice(0,n)+'…':t;}
+
+// ── Editor de descripción (Quill split editor + preview) ──
+let _descQuill=null,_descHiddenEl=null,_descBoxEl=null;
+function ensureDescQuill(){
+  if(_descQuill)return _descQuill;
+  const Font=Quill.import('formats/font');
+  Font.whitelist=['sans','serif','mono'];
+  Quill.register(Font,true);
+  const toolbar=[
+    [{font:['sans','serif','mono']},{header:[1,2,3,false]},{size:['small',false,'large','huge']}],
+    ['bold','italic','underline','strike'],
+    [{color:[]},{background:[]}],
+    ['blockquote','code-block'],
+    [{list:'ordered'},{list:'bullet'},{align:[]}],
+    ['link','image','clean']
+  ];
+  _descQuill=new Quill('#desc-quill',{theme:'snow',placeholder:'Escribe aquí la descripción…',modules:{toolbar}});
+  // Las imágenes se suben al storage (no como base64, que engordaría la BD).
+  _descQuill.getModule('toolbar').addHandler('image',()=>descUploadFile('image/*'));
+  _descQuill.on('text-change',updateDescPreview);
+  return _descQuill;
+}
+function updateDescPreview(){
+  const prev=document.getElementById('desc-preview');if(!prev)return;
+  const txt=_descQuill.getText().trim();
+  prev.innerHTML=txt?DOMPurify.sanitize(_descQuill.root.innerHTML,{ADD_ATTR:['target','rel']}):'<span class="desc-box-placeholder">La vista previa aparecerá aquí…</span>';
+}
+function setDescBox(boxEl,html){
+  if(!boxEl)return;
+  const t=descToText(html);
+  boxEl.innerHTML=t?esc(t.length>160?t.slice(0,160)+'…':t):'<span class="desc-box-placeholder">Clic para escribir la descripción…</span>';
+}
+function openDescEditor(hiddenEl,boxEl,title){
+  ensureDescQuill();
+  _descHiddenEl=hiddenEl;_descBoxEl=boxEl;
+  document.getElementById('desc-editor-title').textContent=title||'Descripción';
+  const val=(hiddenEl&&hiddenEl.value)||'';
+  _descQuill.setText('');
+  if(val.trim())_descQuill.clipboard.dangerouslyPasteHTML(0,val);
+  updateDescPreview();
+  document.getElementById('desc-editor-modal').classList.remove('hidden');
+  setTimeout(()=>{try{_descQuill.focus();}catch(e){}},60);
+}
+function closeDescEditor(){document.getElementById('desc-editor-modal').classList.add('hidden');}
+function saveDescEditor(){
+  const txt=_descQuill.getText().trim();
+  let html=txt?DOMPurify.sanitize(_descQuill.root.innerHTML,{ADD_ATTR:['target','rel']}):'';
+  html=html.replace(/(<p><br\s*\/?><\/p>)+$/i,''); // quitar párrafo vacío final que deja Quill
+  if(_descHiddenEl)_descHiddenEl.value=html;
+  setDescBox(_descBoxEl,html);
+  closeDescEditor();
+}
+async function descUploadFile(accept){
+  const inp=document.getElementById('desc-file-input');
+  inp.value='';inp.accept=accept||'';
+  inp.onchange=async()=>{
+    const file=inp.files[0];if(!file)return;
+    toast('Subiendo archivo…');
+    const path='desc/'+Date.now()+'_'+file.name.replace(/[^\w.\-]/g,'_');
+    const{error:upErr}=await sb.storage.from('materials').upload(path,file,{upsert:true});
+    if(upErr){toast('Error al subir: '+upErr.message,'error');return;}
+    const{data:pub}=sb.storage.from('materials').getPublicUrl(path);
+    const url=pub.publicUrl;
+    const range=_descQuill.getSelection(true)||{index:_descQuill.getLength()};
+    const ext=(file.name.split('.').pop()||'').toLowerCase();
+    if(['png','jpg','jpeg','gif','webp','svg','bmp','avif'].includes(ext)){
+      _descQuill.insertEmbed(range.index,'image',url,'user');
+      _descQuill.setSelection(range.index+1);
+    }else{
+      _descQuill.insertText(range.index,'📎 '+file.name,{link:url},'user');
+      _descQuill.setSelection(range.index+file.name.length+2);
+    }
+    updateDescPreview();
+    toast('Archivo insertado','success');
+  };
+  inp.click();
+}
+function descInsertLink(){
+  let url=prompt('Pega el enlace (URL):');if(!url)return;
+  url=url.trim();if(!url)return;
+  if(!/^https?:\/\//i.test(url))url='https://'+url;
+  const text=(prompt('Texto a mostrar (deja vacío para usar el enlace):')||'').trim()||url;
+  const range=_descQuill.getSelection(true)||{index:_descQuill.getLength()};
+  _descQuill.insertText(range.index,text,{link:url},'user');
+  _descQuill.setSelection(range.index+text.length);
+  updateDescPreview();
+}
 function matColorOf(ext){
   const c={pdf:'#e24b4a',doc:'#378add',docx:'#378add',xls:'#3ddc97',xlsx:'#3ddc97',csv:'#3ddc97',ppt:'#e89a3c',pptx:'#e89a3c',png:'#a78bfa',jpg:'#a78bfa',jpeg:'#a78bfa',gif:'#a78bfa',webp:'#a78bfa',zip:'#9aa0aa',rar:'#9aa0aa',link:'#3ddc97'};
   return c[ext]||'#6b7280';
@@ -1087,7 +1203,7 @@ async function renderLessonExtras(l){
   const info=document.getElementById('lesson-info');
   const descText=document.getElementById('lesson-desc-text');
   const hasDesc=!!(l.description&&l.description.trim());
-  if(hasDesc)descText.innerHTML=linkify(l.description);else descText.textContent='';
+  if(hasDesc)descText.innerHTML=renderDesc(l.description);else descText.textContent='';
   const matList=document.getElementById('lesson-mat-list');
   matList.innerHTML='';
   info.style.display='flex';
@@ -1259,6 +1375,7 @@ function openModuleModal(mod=null){
   document.getElementById('module-modal-title').textContent=mod?'Editar módulo':'Nuevo módulo';
   document.getElementById('mod-title').value=mod?.title||'';
   document.getElementById('mod-desc').value=mod?.description||'';
+  setDescBox(document.getElementById('mod-desc-box'),mod?.description||'');
   document.getElementById('mod-thumb').value=mod?.thumbnail_url||'';
   document.getElementById('mod-level').value=mod?.level||'beginner';
   document.getElementById('mod-published').checked=mod?.is_published||false;
@@ -1267,6 +1384,8 @@ function openModuleModal(mod=null){
   previewThumb('mod-thumb','mod-thumb-preview');
   const lessons=mod?allLessons.filter(l=>l.module_id===mod.id):[];
   const builder=document.getElementById('lessons-builder');builder.innerHTML='';
+  builder.ondragover=lessonContainerDragOver;
+  builder.ondrop=e=>e.preventDefault();
   if(lessons.length)lessons.forEach(l=>addLessonRow(l));else addLessonRow();
   document.getElementById('module-modal').classList.remove('hidden');
 }
@@ -1275,24 +1394,100 @@ function editModule(id){openModuleModal(allModules.find(m=>m.id===id));}
 
 function addLessonRow(lesson=null){
   const builder=document.getElementById('lessons-builder');
-  const div=document.createElement('div');div.className='question-builder-item';
+  const isNew=!lesson;
+  const div=document.createElement('div');div.className='lesson-card';
   div.innerHTML=`
-    <div class="question-builder-hdr">
-      <span class="question-builder-num">Lección ${builder.children.length+1}</span>
-      <button class="btn btn-danger btn-xs" onclick="this.closest('.question-builder-item').remove()">Eliminar</button>
+    <div class="lesson-card-head">
+      <span class="lesson-grip" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></span>
+      <span class="lesson-card-num"></span>
+      <span class="lesson-card-title"></span>
+      <button type="button" class="lesson-card-toggle" aria-label="Expandir" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+      <button type="button" class="btn btn-danger btn-xs lesson-del">Eliminar</button>
     </div>
-    <div class="flex col gap8">
-      <div class="field f1"><input class="input" placeholder="Título de la lección" value="${lesson?.title||''}"></div>
-      <div class="field"><input class="input" placeholder="Descripción (opcional)" value="${lesson?.description||''}"></div>
-      <div class="field"><input class="input" placeholder="URL miniatura (opcional)" value="${lesson?.thumbnail_url||''}"></div>
-      <div class="field"><input class="input" placeholder="Bunny Library ID" value="${lesson?.bunny_library_id||''}"></div>
-      <div class="field"><input class="input" placeholder="Bunny Video ID" value="${lesson?.bunny_video_id||''}"></div>
+    <div class="lesson-card-bodywrap">
+      <div class="lesson-card-body"><div class="lesson-card-inner">
+        <div class="field f1"><input class="input lr-title" placeholder="Título de la lección"></div>
+        <div class="field">
+          <div class="desc-clickbox lr-descbox" onclick="openDescEditor(this.parentNode.querySelector('.lr-desc'),this,'Descripción de la lección')"><span class="desc-box-placeholder">Clic para escribir la descripción…</span></div>
+          <input type="hidden" class="lr-desc">
+        </div>
+        <div class="field"><input class="input lr-thumb" placeholder="URL miniatura (opcional)"></div>
+        <div class="field"><input class="input lr-lib" placeholder="Bunny Library ID"></div>
+        <div class="field"><input class="input lr-vid" placeholder="Bunny Video ID"></div>
+        <div><button type="button" class="btn btn-ghost btn-xs lesson-mat-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="13" height="13" style="margin-right:5px;vertical-align:-2px"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>Material${lesson?.id?'':' (guarda primero)'}</button></div>
+      </div></div>
     </div>
-    <div style="margin-top:8px">
-      <button class="btn btn-ghost btn-xs" onclick="openLessonMatModal(${lesson?.id||'null'},${lesson?.module_id||'null'})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="13" height="13" style="margin-right:5px;vertical-align:-2px"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>Material${lesson?.id?'':' (guarda primero)'}</button>
-    </div>
-    <input type="hidden" value="${lesson?.id||''}">`;
+    <input type="hidden" class="lr-id">`;
   builder.appendChild(div);
+  // Valores por JS (evita romper atributos con comillas/HTML de la descripción)
+  const titleEl=div.querySelector('.lr-title');
+  titleEl.value=lesson?.title||'';
+  div.querySelector('.lr-desc').value=lesson?.description||'';
+  div.querySelector('.lr-thumb').value=lesson?.thumbnail_url||'';
+  div.querySelector('.lr-lib').value=lesson?.bunny_library_id||'';
+  div.querySelector('.lr-vid').value=lesson?.bunny_video_id||'';
+  div.querySelector('.lr-id').value=lesson?.id||'';
+  setDescBox(div.querySelector('.lr-descbox'),lesson?.description||'');
+  // Título en la cabecera (se mantiene sincronizado)
+  const headTitle=div.querySelector('.lesson-card-title');
+  const syncTitle=()=>{const v=titleEl.value.trim();headTitle.textContent=v||'Sin título';headTitle.classList.toggle('untitled',!v);};
+  syncTitle();titleEl.addEventListener('input',syncTitle);
+  // Colapsar/expandir
+  const head=div.querySelector('.lesson-card-head');
+  head.addEventListener('click',e=>{if(e.target.closest('.lesson-del')||e.target.closest('.lesson-card-toggle'))return;toggleLessonCard(div);});
+  div.querySelector('.lesson-card-toggle').addEventListener('click',()=>toggleLessonCard(div));
+  div.querySelector('.lesson-del').addEventListener('click',()=>{div.remove();renumberLessons();});
+  div.querySelector('.lesson-mat-btn').addEventListener('click',()=>openLessonMatModal(lesson?.id||null,lesson?.module_id||null));
+  // Arrastre para reordenar
+  div.addEventListener('dragstart',lessonDragStart);
+  div.addEventListener('dragend',lessonDragEnd);
+  setLessonOpen(div,isNew); // las nuevas nacen abiertas para llenarlas; las existentes, colapsadas
+  renumberLessons();
+}
+// Estado abierto/cerrado + habilita el arrastre solo cuando está colapsada (evita chocar con la selección de texto)
+function setLessonOpen(card,open){
+  card.classList.toggle('open',open);
+  card.setAttribute('draggable',open?'false':'true');
+  const t=card.querySelector('.lesson-card-toggle');
+  if(t){t.setAttribute('aria-expanded',open?'true':'false');t.setAttribute('aria-label',open?'Colapsar':'Expandir');}
+}
+function toggleLessonCard(card){setLessonOpen(card,!card.classList.contains('open'));}
+function renumberLessons(){
+  document.querySelectorAll('#lessons-builder .lesson-card').forEach((c,i)=>{
+    const n=c.querySelector('.lesson-card-num');if(n)n.textContent='Lección '+(i+1);
+  });
+}
+// ── Drag & drop de lecciones (reordenar con auto-renumeración) ──
+let _lessonDrag=null;
+function lessonDragStart(e){
+  _lessonDrag=e.currentTarget;
+  _lessonDrag.classList.add('dragging');
+  e.dataTransfer.effectAllowed='move';
+  try{e.dataTransfer.setData('text/plain','lesson');}catch(_){}
+}
+function lessonDragEnd(){
+  if(_lessonDrag)_lessonDrag.classList.remove('dragging');
+  _lessonDrag=null;
+  document.querySelectorAll('#lessons-builder .drop-target').forEach(c=>c.classList.remove('drop-target'));
+  renumberLessons();
+}
+function lessonDragAfter(container,y){
+  const cards=[...container.querySelectorAll('.lesson-card:not(.dragging)')];
+  return cards.reduce((closest,child)=>{
+    const box=child.getBoundingClientRect();
+    const offset=y-box.top-box.height/2;
+    if(offset<0&&offset>closest.offset)return{offset,element:child};
+    return closest;
+  },{offset:-Infinity,element:null}).element;
+}
+function lessonContainerDragOver(e){
+  if(!_lessonDrag)return;
+  e.preventDefault();
+  const container=document.getElementById('lessons-builder');
+  const after=lessonDragAfter(container,e.clientY);
+  if(after==null)container.appendChild(_lessonDrag);
+  else container.insertBefore(_lessonDrag,after);
+  renumberLessons();
 }
 
 async function saveModule(){
@@ -1309,14 +1504,13 @@ async function saveModule(){
   let moduleId=editId;
   if(editId){const{error}=await sb.from('modules').update(payload).eq('id',editId);if(error){toast('Error: '+error.message,'error');return;}}
   else{const{data,error}=await sb.from('modules').insert(payload).select().single();if(error){toast('Error: '+error.message,'error');return;}moduleId=data.id;}
-  const lessonRows=document.getElementById('lessons-builder').querySelectorAll('.question-builder-item');
+  const lessonRows=document.getElementById('lessons-builder').querySelectorAll('.lesson-card');
   const keepIds=[];
   for(let i=0;i<lessonRows.length;i++){
     const row=lessonRows[i];
-    const inputs=row.querySelectorAll('input.input');
-    const lessonId=row.querySelector('input[type=hidden]').value;
+    const lessonId=row.querySelector('.lr-id').value;
     if(lessonId)keepIds.push(parseInt(lessonId));
-    const lPayload={module_id:parseInt(moduleId),title:inputs[0].value.trim(),description:inputs[1].value.trim(),thumbnail_url:inputs[2].value.trim(),bunny_library_id:inputs[3].value.trim(),bunny_video_id:inputs[4].value.trim(),order_index:i+1};
+    const lPayload={module_id:parseInt(moduleId),title:row.querySelector('.lr-title').value.trim(),description:row.querySelector('.lr-desc').value.trim(),thumbnail_url:row.querySelector('.lr-thumb').value.trim(),bunny_library_id:row.querySelector('.lr-lib').value.trim(),bunny_video_id:row.querySelector('.lr-vid').value.trim(),order_index:i+1};
     if(!lPayload.title)continue;
     if(lessonId)await sb.from('lessons').update(lPayload).eq('id',lessonId);
     else await sb.from('lessons').insert(lPayload);

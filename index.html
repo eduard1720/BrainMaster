@@ -8,7 +8,8 @@
 <link rel="apple-touch-icon" href="img2/icon-b.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=20260625b">
+<link rel="stylesheet" href="js/vendor/quill.snow.css">
+<link rel="stylesheet" href="css/styles.css?v=20260701d">
 <script>document.addEventListener('DOMContentLoaded',function(){var ls=document.getElementById('login-screen');var app=document.getElementById('app');if(ls)ls.style.display='flex';if(app)app.style.display='none';});</script>
 
 <!-- LOGIN -->
@@ -38,7 +39,7 @@
       <div class="login-sub">Ingresa tus credenciales para continuar</div>
       <div class="login-fields">
         <div class="field"><label class="label">Correo electrónico</label><input class="input" type="email" id="inp-email" placeholder="tu@correo.com" autocomplete="email"></div>
-        <div class="field"><label class="label">Contraseña</label><input class="input" type="password" id="inp-pass" placeholder="••••••••" autocomplete="current-password"><div class="login-error" id="login-err">Correo o contraseña incorrectos</div></div>
+        <div class="field"><label class="label">Contraseña</label><div class="pass-wrap"><input class="input" type="password" id="inp-pass" placeholder="••••••••" autocomplete="current-password"><button type="button" class="pass-toggle" aria-label="Mostrar contraseña" aria-pressed="false" onclick="togglePass('inp-pass',this)"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div><div class="login-error" id="login-err">Correo o contraseña incorrectos</div></div>
       </div>
       <button class="btn btn-primary w100" id="login-btn" onclick="doLogin()">Ingresar</button>
       <div style="text-align:center;margin-top:12px"><span class="login-forgot" onclick="forgotPassword()">¿Olvidaste tu contraseña?</span></div>
@@ -163,7 +164,7 @@
           <button class="module-detail-back" onclick="showView('classes')"><svg viewBox="0 0 24 24"><path d="M19 12H5M5 12l7 7M5 12l7-7"/></svg>Volver a Clases</button>
           <div class="module-detail-hero" id="detail-hero"><div class="module-detail-hero-fallback" id="detail-hero-fallback"><svg viewBox="0 0 24 24" width="48" height="48" stroke="var(--muted)" fill="none" stroke-width="1"><path d="M15 10l4.553-2.276A1 1 0 0121 8.723v6.554a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg></div></div>
           <div class="module-detail-title" id="detail-title"></div>
-          <div class="module-detail-desc" id="detail-desc"></div>
+          <div class="module-detail-desc rich-content" id="detail-desc"></div>
           <div class="module-detail-meta" id="detail-meta"></div>
           <div class="lessons-section-title"><span id="lessons-count-label">Lecciones</span></div>
           <div class="lessons-grid" id="lessons-grid"></div>
@@ -195,7 +196,7 @@
             </div>
             <div class="lesson-info-card">
               <div id="lesson-desc-panel">
-                <p class="lesson-desc-text" id="lesson-desc-text"></p>
+                <div class="lesson-desc-text rich-content" id="lesson-desc-text"></div>
               </div>
               <div id="lesson-mat-panel" style="display:none">
                 <div class="lmat-list" id="lesson-mat-list"></div>
@@ -535,19 +536,45 @@
         <div class="field f1"><label class="label">Título</label><input class="input" id="mod-title" placeholder="Ej: Present Simple"></div>
         <div class="field" style="width:110px"><label class="label">Orden</label><input class="input" id="mod-order" type="number" placeholder="1" min="1"></div>
       </div>
-      <div class="field"><label class="label">Descripción</label><textarea class="input" id="mod-desc" placeholder="Descripción del módulo..."></textarea></div>
+      <div class="field"><label class="label">Descripción</label><div class="desc-clickbox" id="mod-desc-box" onclick="openDescEditor(document.getElementById('mod-desc'),this,'Descripción del módulo')"><span class="desc-box-placeholder">Clic para escribir la descripción…</span></div><input type="hidden" id="mod-desc"></div>
       <div class="field"><label class="label">URL de miniatura</label><input class="input" id="mod-thumb" placeholder="https://..." oninput="previewThumb('mod-thumb','mod-thumb-preview')"><div class="thumb-preview" id="mod-thumb-preview"><span class="thumb-preview-empty">Vista previa</span></div></div>
       <div class="field"><label class="label">Nivel</label><select class="input" id="mod-level"><option value="beginner">Básico</option><option value="intermediate">Intermedio</option><option value="advanced">Avanzado</option></select></div>
       <label class="flex ai-center gap8 fs-13" style="cursor:pointer;color:var(--ink2)"><input type="checkbox" id="mod-published" style="accent-color:var(--accent)"> Publicado (visible para alumnos)</label>
       <input type="hidden" id="mod-editing-id">
       <div style="border-top:0.5px solid var(--border);padding-top:16px;margin-top:4px">
-        <div class="flex jc-between ai-center" style="margin-bottom:12px"><span class="fs-13 fw-600" style="color:var(--ink2)">Lecciones del módulo</span><button class="btn btn-ghost btn-sm" onclick="addLessonRow()">+ Añadir lección</button></div>
+        <div class="flex jc-between ai-center" style="margin-bottom:6px"><span class="fs-13 fw-600" style="color:var(--ink2)">Lecciones del módulo</span><button class="btn btn-ghost btn-sm" onclick="addLessonRow()">+ Añadir lección</button></div>
+        <div class="lessons-hint"><svg viewBox="0 0 24 24"><path d="M8 6h.01M8 12h.01M8 18h.01M12 6h.01M12 12h.01M12 18h.01"/></svg>Arrastra para reordenar · clic en una lección para editarla</div>
         <div id="lessons-builder"></div>
       </div>
       <div class="flex gap8" style="justify-content:flex-end;margin-top:4px">
         <button class="btn btn-ghost" onclick="closeModuleModal()">Cancelar</button>
         <button class="btn btn-primary" onclick="saveModule()">Guardar módulo</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDITOR DE DESCRIPCIÓN (enriquecido + preview) -->
+<div id="desc-editor-modal" class="modal-bg hidden">
+  <div class="modal-box desc-editor-box">
+    <div class="modal-hdr"><span class="modal-title" id="desc-editor-title">Descripción</span><div class="modal-close" onclick="closeDescEditor()"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg></div></div>
+    <div class="desc-editor-split">
+      <div class="desc-editor-pane">
+        <div class="desc-editor-actions">
+          <button type="button" class="btn btn-ghost btn-xs" onclick="descUploadFile()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="13" height="13" style="margin-right:4px;vertical-align:-2px"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>Subir documento</button>
+          <button type="button" class="btn btn-ghost btn-xs" onclick="descInsertLink()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="13" height="13" style="margin-right:4px;vertical-align:-2px"><path d="M10 13a5 5 0 007.07 0l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.07 0l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>Insertar enlace</button>
+        </div>
+        <div id="desc-quill"></div>
+        <input type="file" id="desc-file-input" style="display:none">
+      </div>
+      <div class="desc-editor-pane desc-preview-pane">
+        <div class="desc-preview-label">Vista previa — así lo verá el alumno</div>
+        <div id="desc-preview" class="rich-content"></div>
+      </div>
+    </div>
+    <div class="desc-editor-footer">
+      <button class="btn btn-ghost" onclick="closeDescEditor()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveDescEditor()">Guardar descripción</button>
     </div>
   </div>
 </div>
@@ -786,6 +813,8 @@
 
 <div id="toast"></div>
 
-<script src="js/app.js?v=20260701b"></script>
+<script src="js/vendor/quill.min.js"></script>
+<script src="js/vendor/purify.min.js"></script>
+<script src="js/app.js?v=20260701d"></script>
 </body>
 </html>
