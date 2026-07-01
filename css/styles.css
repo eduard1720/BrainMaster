@@ -677,14 +677,16 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
 .lessons-hint{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);margin-bottom:10px}
 .lessons-hint svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8;flex-shrink:0}
 .lesson-card{background:var(--bg2);border:0.5px solid var(--border2);border-radius:10px;margin-bottom:10px;overflow:hidden;transition:border-color .15s,box-shadow .18s,opacity .15s}
-.lesson-card.dragging{opacity:.5;box-shadow:0 12px 30px rgba(0,0,0,.45);border-color:var(--accent)}
-.lesson-card[draggable=true] .lesson-card-head{cursor:grab}
+.lesson-card.dragging{opacity:.9;box-shadow:0 14px 34px rgba(0,0,0,.5);border-color:var(--accent);position:relative;z-index:2}
+.lesson-card:not(.open) .lesson-card-head{cursor:grab;touch-action:none}
 .lesson-card.dragging .lesson-card-head{cursor:grabbing}
 .lesson-card-head{display:flex;align-items:center;gap:10px;padding:11px 12px;user-select:none}
-.lesson-grip{display:inline-flex;color:var(--muted);flex-shrink:0;transition:color .15s;touch-action:none}
+.lesson-grip{display:inline-flex;color:var(--muted);flex-shrink:0;transition:color .15s}
 .lesson-grip svg{width:16px;height:16px}
-.lesson-card[draggable=true]:hover .lesson-grip{color:var(--ink2)}
-.lesson-card:not([draggable=true]) .lesson-grip{opacity:.35}
+.lesson-card:not(.open):hover .lesson-grip{color:var(--ink2)}
+.lesson-card.open .lesson-grip{opacity:.35}
+body.lessons-dragging{cursor:grabbing}
+body.lessons-dragging *{user-select:none}
 .lesson-card-num{font-size:10px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;color:var(--muted);flex-shrink:0}
 .lesson-card-title{font-size:13px;font-weight:500;color:var(--ink);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lesson-card-title.untitled{color:var(--muted);font-style:italic;font-weight:400}

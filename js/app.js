@@ -1384,8 +1384,6 @@ function openModuleModal(mod=null){
   previewThumb('mod-thumb','mod-thumb-preview');
   const lessons=mod?allLessons.filter(l=>l.module_id===mod.id):[];
   const builder=document.getElementById('lessons-builder');builder.innerHTML='';
-  builder.ondragover=lessonContainerDragOver;
-  builder.ondrop=e=>e.preventDefault();
   if(lessons.length)lessons.forEach(l=>addLessonRow(l));else addLessonRow();
   document.getElementById('module-modal').classList.remove('hidden');
 }
@@ -1434,20 +1432,22 @@ function addLessonRow(lesson=null){
   syncTitle();titleEl.addEventListener('input',syncTitle);
   // Colapsar/expandir
   const head=div.querySelector('.lesson-card-head');
-  head.addEventListener('click',e=>{if(e.target.closest('.lesson-del')||e.target.closest('.lesson-card-toggle'))return;toggleLessonCard(div);});
+  head.addEventListener('click',e=>{
+    if(div._justDragged)return; // no expandir si acabamos de arrastrar
+    if(e.target.closest('.lesson-del')||e.target.closest('.lesson-card-toggle'))return;
+    toggleLessonCard(div);
+  });
   div.querySelector('.lesson-card-toggle').addEventListener('click',()=>toggleLessonCard(div));
   div.querySelector('.lesson-del').addEventListener('click',()=>{div.remove();renumberLessons();});
   div.querySelector('.lesson-mat-btn').addEventListener('click',()=>openLessonMatModal(lesson?.id||null,lesson?.module_id||null));
-  // Arrastre para reordenar
-  div.addEventListener('dragstart',lessonDragStart);
-  div.addEventListener('dragend',lessonDragEnd);
+  // Arrastre para reordenar (Pointer Events: mouse + táctil)
+  head.addEventListener('pointerdown',lessonPointerDown);
   setLessonOpen(div,isNew); // las nuevas nacen abiertas para llenarlas; las existentes, colapsadas
   renumberLessons();
 }
-// Estado abierto/cerrado + habilita el arrastre solo cuando está colapsada (evita chocar con la selección de texto)
+// Estado abierto/cerrado
 function setLessonOpen(card,open){
   card.classList.toggle('open',open);
-  card.setAttribute('draggable',open?'false':'true');
   const t=card.querySelector('.lesson-card-toggle');
   if(t){t.setAttribute('aria-expanded',open?'true':'false');t.setAttribute('aria-label',open?'Colapsar':'Expandir');}
 }
@@ -1457,19 +1457,48 @@ function renumberLessons(){
     const n=c.querySelector('.lesson-card-num');if(n)n.textContent='Lección '+(i+1);
   });
 }
-// ── Drag & drop de lecciones (reordenar con auto-renumeración) ──
-let _lessonDrag=null;
-function lessonDragStart(e){
-  _lessonDrag=e.currentTarget;
-  _lessonDrag.classList.add('dragging');
-  e.dataTransfer.effectAllowed='move';
-  try{e.dataTransfer.setData('text/plain','lesson');}catch(_){}
+// ── Reordenar lecciones con Pointer Events (solo cards colapsadas) ──
+// Los listeners van en window: mover la card en el DOM desprendería la
+// cabecera y se perdería la captura del puntero. window nunca se desprende.
+let _lp=null; // {card, startY, active}
+function lessonPointerDown(e){
+  if(e.pointerType==='mouse'&&e.button!==0)return;
+  const head=e.currentTarget;const card=head.closest('.lesson-card');
+  if(!card||card.classList.contains('open'))return;            // solo reordenar colapsadas
+  if(e.target.closest('.lesson-del')||e.target.closest('.lesson-card-toggle'))return;
+  _lp={card,startY:e.clientY,active:false};
+  window.addEventListener('pointermove',lessonPointerMove,{passive:false});
+  window.addEventListener('pointerup',lessonPointerUp);
+  window.addEventListener('pointercancel',lessonPointerUp);
 }
-function lessonDragEnd(){
-  if(_lessonDrag)_lessonDrag.classList.remove('dragging');
-  _lessonDrag=null;
-  document.querySelectorAll('#lessons-builder .drop-target').forEach(c=>c.classList.remove('drop-target'));
+function lessonPointerMove(e){
+  if(!_lp)return;
+  if(!_lp.active){
+    if(Math.abs(e.clientY-_lp.startY)<4)return;                // umbral: distingue clic de arrastre
+    _lp.active=true;
+    _lp.card.classList.add('dragging');
+    document.body.classList.add('lessons-dragging');
+  }
+  e.preventDefault();
+  const container=document.getElementById('lessons-builder');
+  const after=lessonDragAfter(container,e.clientY);
+  if(after==null)container.appendChild(_lp.card);
+  else if(after!==_lp.card)container.insertBefore(_lp.card,after);
   renumberLessons();
+}
+function lessonPointerUp(){
+  if(!_lp)return;
+  const {card,active}=_lp;
+  window.removeEventListener('pointermove',lessonPointerMove);
+  window.removeEventListener('pointerup',lessonPointerUp);
+  window.removeEventListener('pointercancel',lessonPointerUp);
+  _lp=null;
+  if(active){
+    card.classList.remove('dragging');
+    document.body.classList.remove('lessons-dragging');
+    card._justDragged=true;setTimeout(()=>{card._justDragged=false;},0);
+    renumberLessons();
+  }
 }
 function lessonDragAfter(container,y){
   const cards=[...container.querySelectorAll('.lesson-card:not(.dragging)')];
@@ -1479,15 +1508,6 @@ function lessonDragAfter(container,y){
     if(offset<0&&offset>closest.offset)return{offset,element:child};
     return closest;
   },{offset:-Infinity,element:null}).element;
-}
-function lessonContainerDragOver(e){
-  if(!_lessonDrag)return;
-  e.preventDefault();
-  const container=document.getElementById('lessons-builder');
-  const after=lessonDragAfter(container,e.clientY);
-  if(after==null)container.appendChild(_lessonDrag);
-  else container.insertBefore(_lessonDrag,after);
-  renumberLessons();
 }
 
 async function saveModule(){
