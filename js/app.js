@@ -1363,7 +1363,10 @@ async function addLessonMat(){
   if(!lessonId)return;
   const kind=document.getElementById('lm-kind').value;
   const btn=document.getElementById('lm-add-btn');const st=document.getElementById('lm-status');
-  const payload={lesson_id:parseInt(lessonId),module_id:moduleId?parseInt(moduleId):null,kind,description:'',target_group:null,cards:null,order_index:Date.now()};
+  // Siguiente posición dentro de la lección (entero pequeño; NO usar Date.now(): desborda la columna integer)
+  const{data:_lmEx}=await sb.from('materials').select('order_index').eq('lesson_id',lessonId).order('order_index',{ascending:false}).limit(1);
+  const _lmNext=(_lmEx&&_lmEx.length?(_lmEx[0].order_index||0):0)+1;
+  const payload={lesson_id:parseInt(lessonId),module_id:moduleId?parseInt(moduleId):null,kind,description:'',target_group:null,cards:null,order_index:_lmNext};
   if(kind==='link'){
     let url=document.getElementById('lm-link-url').value.trim();
     if(!url){toast('Escribe la URL del enlace','error');return;}
