@@ -598,6 +598,13 @@ function renderStudentExams(){
   cont.innerHTML=html;
 }
 function goToMaterial(id){
+  const m=allMaterials.find(x=>x.id===id);
+  if(!m){toast('Material no disponible','error');return;}
+  // Abrir el material directamente desde el módulo (evita depender de la lista
+  // de Materiales, que aplica filtros de desbloqueo/grupo más estrictos).
+  if(m.kind==='flashcards'){openFlashcards(id);return;}
+  if(m.file_url){window.open(m.file_url,'_blank','noopener');return;}
+  // Fallback: navegar a Materiales y resaltar la tarjeta.
   showView('materials');
   setTimeout(()=>{
     const el=document.querySelector(`#view-materials [data-mat-id="${id}"]`);
