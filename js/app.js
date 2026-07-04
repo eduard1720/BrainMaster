@@ -531,7 +531,7 @@ function renderAdminMaterials(){
 function renderStudentMaterials(){
   const cont=document.getElementById('materials-student-content');if(!cont)return;
   const unlocked=new Set(userAccess.filter(a=>a.unlocked).map(a=>a.module_id));
-  const visible=allMaterials.filter(m=>!m.lesson_id&&unlocked.has(m.module_id)&&targetGroupOk(m.target_group));
+  const visible=allMaterials.filter(m=>!m.lesson_id&&(isAdmin||(unlocked.has(m.module_id)&&targetGroupOk(m.target_group))));
   if(!visible.length){cont.innerHTML='<div class="card"><p class="fs-13 text-muted">Aún no hay materiales disponibles para tus módulos.</p></div>';return;}
   let html='';
   allModules.forEach(mod=>{
@@ -580,7 +580,7 @@ function renderModuleMaterials(moduleId){
 function renderStudentExams(){
   const cont=document.getElementById('exams-list-content');if(!cont)return;
   const unlocked=new Set(userAccess.filter(a=>a.unlocked).map(a=>a.module_id));
-  const visible=allExams.filter(e=>e.is_published&&unlocked.has(e.module_id)&&targetGroupOk(e.target_group));
+  const visible=allExams.filter(e=>isAdmin||(e.is_published&&unlocked.has(e.module_id)&&targetGroupOk(e.target_group)));
   if(!visible.length){cont.innerHTML='<div class="card"><p class="fs-13 text-muted">Aún no tienes exámenes disponibles. Se habilitan a medida que avanzas en los módulos.</p></div>';return;}
   const typeLabel={monthly:'Examen mensual',final:'Examen final'};
   let html='';
@@ -754,7 +754,7 @@ function renderAdminSessions(){
 function sessionVisibleForStudent(s){
   if(!s.audience_type||s.audience_type==='all')return true;
   if(s.audience_type==='group')return (currentUser.group||'')===s.audience_group;
-  if(s.audience_type==='module')return userAccess.some(a=>a.unlocked&&a.module_id===s.audience_module);
+  if(s.audience_type==='module')return isAdmin||userAccess.some(a=>a.unlocked&&a.module_id===s.audience_module);
   return false;
 }
 function renderStudentSessions(){
