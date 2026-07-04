@@ -569,12 +569,19 @@ function renderModuleMaterials(moduleId){
     +`<div class="mat-mini-list">${mats.map(m=>{
       const ic=matIconPath(m.kind);
       const tag=isAdmin&&m.target_group?`<span style="margin-right:6px">${groupBadges(m.target_group)}</span>`:'';
-      return `<div class="mat-mini" onclick="goToMaterial(${m.id})">
+      // Archivos/enlaces: usar <a> nativo (evita el bloqueo de popups de window.open).
+      // Flashcards: <div> con onclick porque abren un modal interno.
+      const isLink=m.kind!=='flashcards'&&m.file_url;
+      const openAttr=isLink
+        ?`href="${esc(m.file_url)}" target="_blank" rel="noopener"`
+        :`role="button" tabindex="0" onclick="goToMaterial(${m.id})"`;
+      const el=isLink?'a':'div';
+      return `<${el} class="mat-mini" ${openAttr}>
         <div class="mat-mini-ic"><svg viewBox="0 0 24 24" stroke-width="1.5" fill="none">${ic}</svg></div>
         <div class="mat-mini-title">${esc(m.title)}</div>
         ${tag}
         <svg class="mat-mini-chev" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5" width="14" height="14"><path d="M9 18l6-6-6-6"/></svg>
-      </div>`;
+      </${el}>`;
     }).join('')}</div>`;
 }
 function renderStudentExams(){

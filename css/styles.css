@@ -460,7 +460,7 @@ select.input{cursor:pointer}textarea.input{resize:vertical;min-height:72px}
 .card-builder-row{display:flex;gap:8px;align-items:flex-start}
 /* MATERIALES — fila compacta dentro del módulo */
 .mat-mini-list{display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
-.mat-mini{display:flex;align-items:center;gap:12px;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r-sm);padding:10px 14px;cursor:pointer;transition:all .15s}
+.mat-mini{display:flex;align-items:center;gap:12px;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r-sm);padding:10px 14px;cursor:pointer;transition:all .15s;text-decoration:none;color:inherit}
 .mat-mini:hover{border-color:var(--border2);background:rgba(255,255,255,.04)}
 .mat-mini-ic{width:34px;height:34px;border-radius:8px;background:rgba(255,255,255,.06);border:0.5px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .mat-mini-ic svg{width:17px;height:17px;stroke:#e8eaed;fill:none}
