@@ -1547,7 +1547,7 @@ async function saveModule(){
     const lPayload={module_id:parseInt(moduleId),title:row.querySelector('.lr-title').value.trim(),description:row.querySelector('.lr-desc').value.trim(),thumbnail_url:row.querySelector('.lr-thumb').value.trim(),bunny_library_id:row.querySelector('.lr-lib').value.trim(),bunny_video_id:row.querySelector('.lr-vid').value.trim(),order_index:i+1};
     if(!lPayload.title)continue;
     if(lessonId)await sb.from('lessons').update(lPayload).eq('id',lessonId);
-    else await sb.from('lessons').insert(lPayload);
+    else{const{data:ins}=await sb.from('lessons').insert(lPayload).select('id').single();if(ins)keepIds.push(ins.id);}
   }
   // Borrar de la BD las lecciones que se quitaron en el editor (el botón Eliminar solo las quitaba de la pantalla)
   if(editId){
