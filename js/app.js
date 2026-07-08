@@ -1546,16 +1546,26 @@ async function saveModule(){
     if(lessonId)keepIds.push(parseInt(lessonId));
     const lPayload={module_id:parseInt(moduleId),title:row.querySelector('.lr-title').value.trim(),description:row.querySelector('.lr-desc').value.trim(),thumbnail_url:row.querySelector('.lr-thumb').value.trim(),bunny_library_id:row.querySelector('.lr-lib').value.trim(),bunny_video_id:row.querySelector('.lr-vid').value.trim(),order_index:i+1};
     if(!lPayload.title)continue;
-    if(lessonId)await sb.from('lessons').update(lPayload).eq('id',lessonId);
-    else{const{data:ins}=await sb.from('lessons').insert(lPayload).select('id').single();if(ins)keepIds.push(ins.id);}
+    if(lessonId){
+      const{error}=await sb.from('lessons').update(lPayload).eq('id',lessonId);
+      if(error){toast('No se pudo guardar la lección "'+(lPayload.title||'sin título')+'": '+error.message,'error');return;}
+    }else{
+      const{data:ins,error}=await sb.from('lessons').insert(lPayload).select('id').single();
+      if(error||!ins){toast('No se pudo guardar la lección "'+(lPayload.title||'sin título')+'": '+((error&&error.message)||'sin respuesta de la base de datos'),'error');return;}
+      row.querySelector('.lr-id').value=ins.id; // ya no es nueva: evita re-insertar si se vuelve a guardar
+      keepIds.push(ins.id);
+    }
   }
   // Borrar de la BD las lecciones que se quitaron en el editor (el botón Eliminar solo las quitaba de la pantalla)
   if(editId){
-    const{data:dbLessons}=await sb.from('lessons').select('id').eq('module_id',moduleId);
-    for(const l of (dbLessons||[])){
-      if(!keepIds.includes(l.id)){
-        await sb.from('materials').delete().eq('lesson_id',l.id);
-        await sb.from('lessons').delete().eq('id',l.id);
+    const{data:dbLessons,error:selErr}=await sb.from('lessons').select('id').eq('module_id',moduleId);
+    // Solo depuramos si pudimos leer la lista real; si la lectura falla, no borramos nada (evita perder lecciones)
+    if(!selErr){
+      for(const l of (dbLessons||[])){
+        if(!keepIds.includes(l.id)){
+          await sb.from('materials').delete().eq('lesson_id',l.id);
+          await sb.from('lessons').delete().eq('id',l.id);
+        }
       }
     }
   }
